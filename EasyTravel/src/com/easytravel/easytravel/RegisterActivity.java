@@ -48,9 +48,9 @@ public class RegisterActivity extends Activity implements OnClickListener{
 
 	@Override
 	public void onClick(View v) {
-		if (email.getText().length() <= 3) {
+		if (email.getText().length() <= 7) {
 			Toast.makeText(RegisterActivity.this,
-					"Your email should be at least 4 symbols!",
+					"Your email should be at least 8 symbols!",
 					Toast.LENGTH_SHORT).show();
 		} else if (password.getText().length() < 6) {
 			Toast.makeText(RegisterActivity.this,
