@@ -238,7 +238,7 @@ public class HomeActivity extends Activity {
 			fragment = new FindPeopleFragment();
 			break;
 		case 2:
-			fragment = new PhotosFragment();
+			fragment = new CreateTripFragment();
 			break;
 		case 3:
 			fragment = new CommunityFragment();
