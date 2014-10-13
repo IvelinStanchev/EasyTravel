@@ -1,0 +1,7 @@
+package com.easytravel.easytravel;
+
+import android.app.Fragment;
+
+public class JoinTrip extends Fragment {
+
+}
