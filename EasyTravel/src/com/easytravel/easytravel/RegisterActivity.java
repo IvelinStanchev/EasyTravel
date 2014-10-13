@@ -9,7 +9,10 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,7 +23,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
-public class RegisterActivity extends Activity implements OnClickListener{
+public class RegisterActivity extends Activity implements OnClickListener {
 
 	EditText email;
 	EditText password;
@@ -44,39 +47,63 @@ public class RegisterActivity extends Activity implements OnClickListener{
 		registerButton = (Button) findViewById(R.id.btn_register);
 
 		registerButton.setOnClickListener(this);
+		
+		if (!isNetworkAvailable()) {
+			Toast.makeText(RegisterActivity.this, "No Internet Connection!",
+					Toast.LENGTH_LONG).show();
+		}
+	}
+
+	private boolean isNetworkAvailable() {
+		ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo activeNetworkInfo = connectivityManager
+				.getActiveNetworkInfo();
+		return activeNetworkInfo != null && activeNetworkInfo.isConnected();
 	}
 
 	@Override
 	public void onClick(View v) {
-		if (email.getText().length() <= 3) {
-			Toast.makeText(RegisterActivity.this,
-					"Your email should be at least 4 symbols!",
-					Toast.LENGTH_SHORT).show();
-		} else if (password.getText().length() < 6) {
-			Toast.makeText(RegisterActivity.this,
-					"Your password should be at least 6 symbols!",
-					Toast.LENGTH_SHORT).show();
-		} else if (!String.valueOf(confirmPassword.getText()).equals(String.valueOf(password.getText()))) {
-			Toast.makeText(RegisterActivity.this, "Passwords mismatch!",
-					Toast.LENGTH_SHORT).show();
-		} else if (isDriver.isChecked() && carData.getText().length() < 4) {
-			Toast.makeText(RegisterActivity.this,
-					"Your car data information should be at least 3 symbols!",
-					Toast.LENGTH_SHORT).show();
-		} else if (isDriver.isChecked() && carData.getText().length() > 100) {
-			Toast.makeText(
-					RegisterActivity.this,
-					"Your car data information should be smaller than 100 symbols!",
-					Toast.LENGTH_SHORT).show();
-		} else {
-			Register register = new Register();
-			register.execute(String.valueOf(email.getText()),
-					String.valueOf(password.getText()),
-					String.valueOf(confirmPassword.getText()),
-					String.valueOf(isDriver.isChecked()),
-					String.valueOf(carData.getText()));
+		if (v.getId() == R.id.btn_register) {
+			if (isNetworkAvailable()) {
+				if (email.getText().length() <= 3) {
+					Toast.makeText(RegisterActivity.this,
+							"Your email should be at least 4 symbols!",
+							Toast.LENGTH_SHORT).show();
+				} else if (password.getText().length() < 6) {
+					Toast.makeText(RegisterActivity.this,
+							"Your password should be at least 6 symbols!",
+							Toast.LENGTH_SHORT).show();
+				} else if (!String.valueOf(confirmPassword.getText()).equals(
+						String.valueOf(password.getText()))) {
+					Toast.makeText(RegisterActivity.this, "Passwords mismatch!",
+							Toast.LENGTH_SHORT).show();
+				} else if (isDriver.isChecked() && carData.getText().length() < 4) {
+					Toast.makeText(RegisterActivity.this,
+							"Your car data information should be at least 3 symbols!",
+							Toast.LENGTH_SHORT).show();
+				} else if (isDriver.isChecked() && carData.getText().length() > 100) {
+					Toast.makeText(
+							RegisterActivity.this,
+							"Your car data information should be smaller than 100 symbols!",
+							Toast.LENGTH_SHORT).show();
+				} else {
+					Intent i = new Intent(RegisterActivity.this, RegisteringActivity.class);
+					i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+					startActivity(i);
+					
+					Register register = new Register();
+					register.execute(String.valueOf(email.getText()),
+							String.valueOf(password.getText()),
+							String.valueOf(confirmPassword.getText()),
+							String.valueOf(isDriver.isChecked()),
+							String.valueOf(carData.getText()));
+				}
+			}
+			else{
+				Toast.makeText(RegisterActivity.this, "No Internet Connection!",
+						Toast.LENGTH_LONG).show();
+			}
 		}
-
 	}
 
 	public void onRadioButtonClicked(View view) {
@@ -149,9 +176,9 @@ public class RegisterActivity extends Activity implements OnClickListener{
 
 			try {
 				HttpResponse response = httpClient.execute(httppost);
-				
+
 				Log.d("D1", "Registered");
-				
+
 				return response;
 			} catch (Exception e) {
 				Log.d("D1", e.toString());
@@ -164,21 +191,22 @@ public class RegisterActivity extends Activity implements OnClickListener{
 		protected void onPostExecute(HttpResponse response) {
 			// TODO Auto-generated method stub
 			super.onPostExecute(response);
-			
+
 			if (response.getStatusLine().getStatusCode() == 200) {
-				Toast.makeText(
-						RegisterActivity.this,
-						"Successfully registered!",
-						Toast.LENGTH_SHORT).show();
-				
-				Intent i = new Intent(RegisterActivity.this, LoginActivity.class);
+				Toast.makeText(RegisterActivity.this,
+						"Successfully registered!", Toast.LENGTH_SHORT).show();
+
+				Intent i = new Intent(RegisterActivity.this,
+						LoginActivity.class);
 				i.putExtra("email", String.valueOf(email.getText()));
 				i.putExtra("password", String.valueOf(password.getText()));
 				startActivity(i);
-			}
-			else if (response.getStatusLine().getStatusCode() == 400){
-				Toast.makeText(
-						RegisterActivity.this,
+			} else if (response.getStatusLine().getStatusCode() == 400) {
+				Intent i = new Intent(RegisterActivity.this, RegisterActivity.class);
+				i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(i);
+				
+				Toast.makeText(RegisterActivity.this,
 						"Users with the same name already exists!",
 						Toast.LENGTH_SHORT).show();
 			}

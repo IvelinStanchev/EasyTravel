@@ -1,6 +1,20 @@
 package com.easytravel.easytravel;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.ParseException;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -9,9 +23,12 @@ import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
@@ -56,6 +73,7 @@ public class HomeActivity extends Activity {
 		if (getIntent().getStringExtra("access_token") != null) {
 			hasAccessToken = true;
 			accessToken = getIntent().getStringExtra("access_token");
+			Log.d("D1", accessToken);
 		}
 		
 		mTitle = mDrawerTitle = getTitle();
@@ -93,7 +111,7 @@ public class HomeActivity extends Activity {
 				.getResourceId(5, -1), true, "50+"));
 		
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[6], navMenuIcons
-				.getResourceId(6, -1), true, "50+"));
+				.getResourceId(6, -1)));
 
 		// Recycle the typed array
 		navMenuIcons.recycle();
@@ -144,10 +162,10 @@ public class HomeActivity extends Activity {
 	    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 	        public void onClick(DialogInterface dialog, int which) {
 	        	if (hasAccessToken) {
-		        	Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-		        	intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		        	intent.putExtra("EXIT", true);
-		        	startActivity(intent);
+		        	Intent i = new Intent(getApplicationContext(), LoginActivity.class);
+		        	i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		        	i.putExtra("EXIT", true);
+		        	startActivity(i);
 				}
 	        }
 	     })
@@ -232,7 +250,6 @@ public class HomeActivity extends Activity {
 			fragment = new WhatsHotFragment();
 			break;
 		case 6:
-			//fragment = new LogoutFragment();
 			askForLoggingOut();
 			break;
 
@@ -256,8 +273,101 @@ public class HomeActivity extends Activity {
 		}
 	}
 
+	@SuppressLint("NewApi")
+	private void logoutUser(){
+		Intent i = new Intent(HomeActivity.this, LoggingOutActivity.class);
+		i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		startActivity(i);
+		
+		Logout logout = new Logout();
+		logout.execute(accessToken);
+	}
+	
+	private class Logout extends AsyncTask<String, Void, HttpResponse> {
+
+		protected HttpResponse doInBackground(String... params) {
+			String accessTokenLogout = params[0];
+
+			DefaultHttpClient httpClient = new DefaultHttpClient();
+			HttpPost httppost = new HttpPost(
+					"http://spa2014.bgcoder.com/api/users/logout");
+			httppost.addHeader("Authorization", "Bearer " + accessTokenLogout);
+
+			try {
+				HttpResponse response = httpClient.execute(httppost);
+
+				return response;
+			} catch (Exception e) {
+				Log.d("D1", e.toString());
+			}
+
+			return null;
+		}
+
+		@SuppressLint("NewApi")
+		@Override
+		protected void onPostExecute(HttpResponse response) {
+			// TODO Auto-generated method stub
+			super.onPostExecute(response);
+
+			if (response.getStatusLine().getStatusCode() == 200) {
+				Toast.makeText(HomeActivity.this, "Successfully logged out!",
+						Toast.LENGTH_SHORT).show();
+
+				SharedPreferences preferences = PreferenceManager
+						.getDefaultSharedPreferences(HomeActivity.this);
+				SharedPreferences.Editor editor = preferences.edit();
+				editor.putString("access_token", null);
+				editor.putString(".expires", null);
+				editor.apply();
+
+				Intent i = new Intent(HomeActivity.this, LoginActivity.class);
+				i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				i.putExtra("Logout", true);
+				startActivity(i);
+				
+//				Intent i = new Intent(LoginActivity.this, HomeActivity.class);
+//				i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+//						| Intent.FLAG_ACTIVITY_NEW_TASK);
+//				startActivity(i);
+
+			} else if (response.getStatusLine().getStatusCode() == 400) {
+				Toast.makeText(HomeActivity.this, "An error occurred while logging out!",
+						Toast.LENGTH_SHORT).show();
+			}
+		}
+
+	}
+	
 	private void askForLoggingOut() {
-		Toast.makeText(HomeActivity.this, "Peshooo", Toast.LENGTH_SHORT);
+		new AlertDialog.Builder(this)
+	    .setTitle("Logout")
+	    .setMessage("Are you sure you want to logout?")
+	    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+	        public void onClick(DialogInterface dialog, int which) {
+	        	logoutUser();
+	        }
+	     })
+	    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+	        @SuppressLint("NewApi")
+			public void onClick(DialogInterface dialog, int which) {
+	        	Fragment fragment = new HomeFragment();
+	        	
+	        	if (fragment != null) {
+	    			FragmentManager fragmentManager = getFragmentManager();
+	    			fragmentManager.beginTransaction()
+	    					.replace(R.id.frame_container, fragment).commit();
+
+	    			// update selected item and title, then close the drawer
+	    			mDrawerList.setItemChecked(0, true);
+	    			mDrawerList.setSelection(0);
+	    			setTitle(navMenuTitles[0]);
+	    			mDrawerLayout.closeDrawer(mDrawerList);
+	    		}
+	        }
+	     })
+	    .setIcon(android.R.drawable.ic_dialog_alert)
+	     .show();
 	}
 
 	@SuppressLint("NewApi")
