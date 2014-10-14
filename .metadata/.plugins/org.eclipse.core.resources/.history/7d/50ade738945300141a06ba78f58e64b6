@@ -1,0 +1,5 @@
+package com.easytravel.easytravel.services;
+
+public class InternetConnectionReceiver {
+
+}
