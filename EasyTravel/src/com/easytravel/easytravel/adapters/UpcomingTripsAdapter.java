@@ -29,6 +29,10 @@ public class UpcomingTripsAdapter extends BaseAdapter {
 	    notifyDataSetChanged();
 	}
 	
+	public void clear(){
+		this.upcomingTrips.clear();
+	}
+	
 	@Override
 	public int getCount() {
 		return upcomingTrips.size();

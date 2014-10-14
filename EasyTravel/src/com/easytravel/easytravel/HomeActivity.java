@@ -1,9 +1,10 @@
 package com.easytravel.easytravel;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -15,6 +16,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
@@ -28,7 +30,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.easytravel.easytravel.adapters.NavDrawerListAdapter;
-import com.easytravel.easytravel.asynctasks.Logout;
 import com.easytravel.easytravel.models.NavDrawerItem;
 import com.easytravel.easytravel.progressactivities.LoggingOutActivity;
 
@@ -84,17 +85,21 @@ public class HomeActivity extends Activity {
 		// Home
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[0], navMenuIcons
 				.getResourceId(0, -1)));
-		// Find People
+		// Create Trip
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[1], navMenuIcons
 				.getResourceId(1, -1)));
-		// Photos
+		// Find Trips
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[2], navMenuIcons
 				.getResourceId(2, -1)));
+		// Find People
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[3], navMenuIcons
 				.getResourceId(3, -1)));
-		// Communities, Will add a counter here
+		// Subscribed Drivers
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[4], navMenuIcons
 				.getResourceId(4, -1)));
+		// Logout
+		navDrawerItems.add(new NavDrawerItem(navMenuTitles[5], navMenuIcons
+				.getResourceId(5, -1)));
 
 		// Recycle the typed array
 		navMenuIcons.recycle();
@@ -219,18 +224,21 @@ public class HomeActivity extends Activity {
 		Fragment fragment = null;
 		switch (position) {
 		case 0:
-			fragment = new HomeFragment();
+			fragment = new HomeFragment(false);
 			break;
 		case 1:
-			fragment = new FindPeopleFragment();
-			break;
-		case 2:
 			fragment = new CreateTripFragment();
 			break;
+		case 2:
+			fragment = new HomeFragment(true);
+			break;
 		case 3:
-			fragment = new SubscribedUsersFragment();
+			fragment = new FindPeopleFragment();
 			break;
 		case 4:
+			fragment = new SubscribedUsersFragment();
+			break;
+		case 5:
 			askForLoggingOut();
 			break;
 		default:
@@ -259,41 +267,56 @@ public class HomeActivity extends Activity {
 		i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(i);
 
-		try {
-			HttpResponse response = new Logout().execute(accessToken).get();
-			
-			proccesLogout(response);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		new Logout().execute(accessToken);
 	}
 
-	@SuppressLint("NewApi")
-	private void proccesLogout(HttpResponse response) {
-		if (response.getStatusLine().getStatusCode() == 200) {
-			Toast.makeText(HomeActivity.this, "Successfully logged out!",
-					Toast.LENGTH_SHORT).show();
+	private class Logout extends AsyncTask<String, Void, HttpResponse> {
 
-			SharedPreferences preferences = PreferenceManager
-					.getDefaultSharedPreferences(HomeActivity.this);
-			SharedPreferences.Editor editor = preferences.edit();
-			editor.putString("access_token", null);
-			editor.putString(".expires", null);
-			editor.apply();
+		protected HttpResponse doInBackground(String... params) {
+			String accessTokenLogout = params[0];
 
-			Intent i = new Intent(HomeActivity.this, LoginActivity.class);
-			i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			i.putExtra("Logout", true);
-			startActivity(i);
+			DefaultHttpClient httpClient = new DefaultHttpClient();
+			HttpPost httppost = new HttpPost(
+					"http://spa2014.bgcoder.com/api/users/logout");
+			httppost.addHeader("Authorization", "Bearer " + accessTokenLogout);
 
-		} else if (response.getStatusLine().getStatusCode() == 400) {
-			Toast.makeText(HomeActivity.this,
-					"An error occurred while logging out!", Toast.LENGTH_SHORT)
-					.show();
+			try {
+				HttpResponse response = httpClient.execute(httppost);
+
+				return response;
+			} catch (Exception e) {
+				Log.d("D1", e.toString());
+			}
+
+			return null;
+		}
+
+		@SuppressLint("NewApi")
+		@Override
+		protected void onPostExecute(HttpResponse response) {
+			super.onPostExecute(response);
+
+			if (response.getStatusLine().getStatusCode() == 200) {
+				Toast.makeText(HomeActivity.this, "Successfully logged out!",
+						Toast.LENGTH_SHORT).show();
+
+				SharedPreferences preferences = PreferenceManager
+						.getDefaultSharedPreferences(HomeActivity.this);
+				SharedPreferences.Editor editor = preferences.edit();
+				editor.putString("access_token", null);
+				editor.putString(".expires", null);
+				editor.apply();
+
+				Intent i = new Intent(HomeActivity.this, LoginActivity.class);
+				i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				i.putExtra("Logout", true);
+				startActivity(i);
+
+			} else if (response.getStatusLine().getStatusCode() == 400) {
+				Toast.makeText(HomeActivity.this,
+						"An error occurred while logging out!",
+						Toast.LENGTH_SHORT).show();
+			}
 		}
 	}
 
@@ -313,7 +336,7 @@ public class HomeActivity extends Activity {
 							@SuppressLint("NewApi")
 							public void onClick(DialogInterface dialog,
 									int which) {
-								Fragment fragment = new HomeFragment();
+								Fragment fragment = new HomeFragment(false);
 
 								if (fragment != null) {
 									FragmentManager fragmentManager = getFragmentManager();

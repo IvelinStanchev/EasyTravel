@@ -84,7 +84,7 @@ public class SubscribedUsersFragment extends Fragment {
 		}
 		
 		if (subscribedUsers.size() == 0) {
-			Fragment fragment = new HomeFragment();
+			Fragment fragment = new HomeFragment(false);
 			
 			if (fragment != null) {
 				FragmentManager fragmentManager = getFragmentManager();

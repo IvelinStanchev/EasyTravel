@@ -27,7 +27,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.easytravel.easytravel.asynctasks.GetDriverDetails;
 import com.easytravel.easytravel.sqlite.DBPref;
 
 @SuppressLint("NewApi")
@@ -73,37 +72,38 @@ public class SubscribeFragment extends Fragment {
 			@Override
 			public void onClick(View v) {
 				boolean hasUserWithTheSameName = false;
-				
+
 				DBPref pref = new DBPref(getActivity().getApplicationContext());
 				Cursor c = pref.getValues();
 
 				if (c.moveToFirst()) {
 					do {
-						String currentDriverName = c.getString(c.getColumnIndex("driver_name"));
-						if (currentDriverName.equals(driverName.getText().toString())) {
+						String currentDriverName = c.getString(c
+								.getColumnIndex("driver_name"));
+						if (currentDriverName.equals(driverName.getText()
+								.toString())) {
 							hasUserWithTheSameName = true;
 						}
 					} while (c.moveToNext());
 				}
 				c.close();
 				if (hasUserWithTheSameName) {
-					Toast.makeText(getActivity(), "You have already subscribed that user!",
+					Toast.makeText(getActivity(),
+							"You have already subscribed that user!",
 							Toast.LENGTH_SHORT).show();
-				}
-				else{
-					pref.addRecord(nameOfDriver,
-							upcomingTripsCount,
+				} else {
+					pref.addRecord(nameOfDriver, upcomingTripsCount,
 							allTripsCount);
-					
+
 					pref.close();
-					
+
 					Toast.makeText(getActivity(), "Successfully subscribed!",
 							Toast.LENGTH_SHORT).show();
 				}
-				
+
 				pref.close();
-				
-				Fragment fragment = new HomeFragment();
+
+				Fragment fragment = new HomeFragment(false);
 
 				if (fragment != null) {
 					FragmentManager fragmentManager = getFragmentManager();
@@ -113,41 +113,61 @@ public class SubscribeFragment extends Fragment {
 			}
 		});
 
-		try {
-			String response = new GetDriverDetails().execute(driverId, accessToken).get();
-			
-			ProcessDriverDetails(response);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		new GetDriverDetails().execute(driverId, accessToken);
 
 		return rootView;
 	}
-	
-	private void ProcessDriverDetails(String result){
-		JSONObject obj;
-		try {
-			obj = new JSONObject(result);
-			nameOfDriver = obj.getString("name");
-			upcomingTripsCount = String.valueOf(obj
-					.getInt("numberOfUpcomingTrips"));
-			allTripsCount = String.valueOf(obj
-					.getInt("numberOfTotalTrips"));
 
-			driverName.setText("Driver name: " + nameOfDriver);
-			driverUpcomingTrips.setText("Upcoming trips: "
-					+ upcomingTripsCount);
-			driverAllTrips.setText("All trips: " + allTripsCount);
+	private class GetDriverDetails extends AsyncTask<String, Void, String> {
 
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		@Override
+		protected String doInBackground(String... params) {
+
+			String driverId = params[0];
+			String accessToken = params[1];
+
+			DefaultHttpClient httpClient = new DefaultHttpClient();
+			HttpGet httpget = new HttpGet(
+					"http://spa2014.bgcoder.com/api/drivers/" + driverId);
+			httpget.setHeader("Authorization", "Bearer " + accessToken);
+
+			try {
+				HttpResponse response = httpClient.execute(httpget);
+
+				HttpEntity entity = response.getEntity();
+
+				String responseFinal = EntityUtils.toString(entity);
+
+				return responseFinal;
+			} catch (Exception e) {
+				Log.d("D1", e.toString());
+			}
+
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			super.onPostExecute(result);
+
+			JSONObject obj;
+			try {
+				obj = new JSONObject(result);
+				nameOfDriver = obj.getString("name");
+				upcomingTripsCount = String.valueOf(obj
+						.getInt("numberOfUpcomingTrips"));
+				allTripsCount = String
+						.valueOf(obj.getInt("numberOfTotalTrips"));
+
+				driverName.setText("Driver name: " + nameOfDriver);
+				driverUpcomingTrips.setText("Upcoming trips: "
+						+ upcomingTripsCount);
+				driverAllTrips.setText("All trips: " + allTripsCount);
+
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
-	
-	
 }

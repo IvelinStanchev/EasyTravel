@@ -1,17 +1,9 @@
 package com.easytravel.easytravel.services;
 
-
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.widget.Toast;
-
-import com.easytravel.easytravel.HomeFragment;
-import com.easytravel.easytravel.NoInternetAccessFragment;
-import com.easytravel.easytravel.R;
 
 public class ContentCheckService extends Service {
 
@@ -26,7 +18,6 @@ public class ContentCheckService extends Service {
 		// TODO Auto-generated method stub
 		String networkState = intent.getStringExtra("networkConnection");
 		Toast.makeText(this, "Your network connection state is -> " + networkState, Toast.LENGTH_SHORT).show();
-
 		return super.onStartCommand(intent, flags, startId);
 	}
 

@@ -6,27 +6,42 @@
     <string name="action_settings">Settings</string>
     <string name="drawer_open">Slider Menu Opened</string>
     <string name="drawer_close">Slider Menu Closed</string>
-    
+
     <!-- Nav Drawer Menu Items -->
     <string-array name="nav_drawer_items">
-        <item >Upcoming trips</item>
-        <item >Find People</item>
-        <item >Create Trip</item>
-        <item >Subscribed drivers</item>
-        <item >Logout</item>
+        <item>Upcoming trips</item>
+        <item>Create Trip</item>
+        <item>Find Trips</item>
+        <item>Find People</item>
+        <item>Subscribed drivers</item>
+        <item>Logout</item>
     </string-array>
-    
+
     <!-- Nav Drawer List Item Icons -->
     <!-- Keep them in order as the titles are in -->
     <array name="nav_drawer_icons">
         <item>@drawable/ic_car</item>
-        <item>@drawable/ic_people</item>
         <item>@drawable/ic_create_trip</item>
+        <item>@drawable/ic_search</item>
+        <item>@drawable/ic_people</item>
         <item>@drawable/ic_user_info</item>
         <item>@drawable/ic_logout</item>
     </array>
-    
+
+    <string-array name="array_names">
+        <item>Volvo</item>
+        <item>Saab</item>
+        <item>Mercedes</item>
+        <item>Audi</item>
+    </string-array>
+    <string-array name="array_name_values">
+        <item>36</item>
+        <item>45</item>
+        <item>56</item>
+        <item>71</item>
+    </string-array>
+
     <!-- Content Description -->
     <string name="desc_list_item_icon">Item Icon</string>
-    
+
 </resources>

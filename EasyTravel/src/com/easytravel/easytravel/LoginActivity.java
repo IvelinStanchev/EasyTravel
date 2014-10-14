@@ -1,14 +1,21 @@
 package com.easytravel.easytravel;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,8 +29,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,7 +43,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.easytravel.easytravel.asynctasks.Login;
 import com.easytravel.easytravel.progressactivities.LoggingInActivity;
 
 public class LoginActivity extends Activity implements OnClickListener {
@@ -58,9 +66,9 @@ public class LoginActivity extends Activity implements OnClickListener {
 		email = (EditText) findViewById(R.id.et_emailLogin);
 		password = (EditText) findViewById(R.id.et_passwordLogin);
 		login = (Button) findViewById(R.id.btn_login);
-		
+
 		login.setOnClickListener(this);
-		
+
 		if (isNetworkAvailable()) {
 			if (getIntent().getBooleanExtra("EXIT", false)) {
 				System.exit(0);
@@ -96,9 +104,8 @@ public class LoginActivity extends Activity implements OnClickListener {
 					password.setText(getIntent().getStringExtra("password"));
 				}
 			}
-			
-		}
-		else{
+
+		} else {
 			Toast.makeText(LoginActivity.this, "No Internet Connection!",
 					Toast.LENGTH_LONG).show();
 		}
@@ -188,84 +195,109 @@ public class LoginActivity extends Activity implements OnClickListener {
 	public void onClick(View v) {
 		if (v.getId() == R.id.btn_login) {
 			if (isNetworkAvailable()) {
-				Intent i = new Intent(LoginActivity.this, LoggingInActivity.class);
+				Intent i = new Intent(LoginActivity.this,
+						LoggingInActivity.class);
 				startActivity(i);
 
-				try {
-					HttpResponse response = new Login().execute(String.valueOf(email.getText()), String.valueOf(password.getText())).get();
-					
-					processResponseLogin(response);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			else{
+				new Login().execute(String.valueOf(email.getText()),
+						String.valueOf(password.getText()));
+			} else {
 				Toast.makeText(LoginActivity.this, "No Internet Connection!",
 						Toast.LENGTH_LONG).show();
 			}
 		}
 	}
 
-	@SuppressLint("NewApi")
-	private void processResponseLogin(HttpResponse response) {
-		String responseFinal = "";
-		String accessToken = null;
-		String expirationDate = null;
+	private class Login extends AsyncTask<String, Void, HttpResponse> {
 
-		HttpEntity entity = response.getEntity();
+		protected HttpResponse doInBackground(String... params) {
+			String email = params[0];
+			String password = params[1];
 
-		try {
-			responseFinal = EntityUtils.toString(entity);
-		} catch (ParseException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			DefaultHttpClient httpClient = new DefaultHttpClient();
+			HttpPost httppost = new HttpPost(
+					"http://spa2014.bgcoder.com/api/users/login");
+			httppost.addHeader("Content-Type", "x-www-form-urlencoded");
+
+			List<NameValuePair> pair = new ArrayList<NameValuePair>();
+
+			pair.add(new BasicNameValuePair("grant_type", "password"));
+			pair.add(new BasicNameValuePair("username", email));
+			pair.add(new BasicNameValuePair("password", password));
+
+			try {
+				httppost.setEntity(new UrlEncodedFormEntity(pair));
+
+				HttpResponse response = httpClient.execute(httppost);
+
+				return response;
+			} catch (Exception e) {
+				Log.d("D1", e.toString());
+			}
+
+			return null;
 		}
 
-		try {
-			JSONObject jsonObj = new JSONObject(responseFinal);
+		@SuppressLint("NewApi")
+		@Override
+		protected void onPostExecute(HttpResponse response) {
+			super.onPostExecute(response);
 
-			accessToken = jsonObj.getString("access_token");
-			expirationDate = jsonObj.getString(".expires");
+			String responseFinal = "";
+			String accessToken = null;
+			String expirationDate = null;
 
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			HttpEntity entity = response.getEntity();
 
-		if (response.getStatusLine().getStatusCode() == 200
-				&& accessToken != null) {
-			Toast.makeText(LoginActivity.this, "Successfully logged in!",
-					Toast.LENGTH_SHORT).show();
+			try {
+				responseFinal = EntityUtils.toString(entity);
+			} catch (ParseException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 
-			SharedPreferences preferences = PreferenceManager
-					.getDefaultSharedPreferences(LoginActivity.this);
-			SharedPreferences.Editor editor = preferences.edit();
-			editor.putString("access_token", accessToken);
-			editor.putString(".expires", expirationDate);
-			editor.apply();
+			try {
+				JSONObject jsonObj = new JSONObject(responseFinal);
 
-			Intent i = new Intent(LoginActivity.this, HomeActivity.class);
-			i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-					| Intent.FLAG_ACTIVITY_NEW_TASK);
-			startActivity(i);
+				accessToken = jsonObj.getString("access_token");
+				expirationDate = jsonObj.getString(".expires");
 
-		} else if (response.getStatusLine().getStatusCode() == 400
-				|| accessToken == null) {
-			Toast.makeText(LoginActivity.this, "Wrong email or password!",
-					Toast.LENGTH_SHORT).show();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
-			Intent i = new Intent(getApplicationContext(),
-					LoginActivity.class);
-			i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-					| Intent.FLAG_ACTIVITY_NEW_TASK);
-			startActivity(i);
+			if (response.getStatusLine().getStatusCode() == 200
+					&& accessToken != null) {
+				Toast.makeText(LoginActivity.this, "Successfully logged in!",
+						Toast.LENGTH_SHORT).show();
+
+				SharedPreferences preferences = PreferenceManager
+						.getDefaultSharedPreferences(LoginActivity.this);
+				SharedPreferences.Editor editor = preferences.edit();
+				editor.putString("access_token", accessToken);
+				editor.putString(".expires", expirationDate);
+				editor.apply();
+
+				Intent i = new Intent(LoginActivity.this, HomeActivity.class);
+				i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+						| Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(i);
+
+			} else if (response.getStatusLine().getStatusCode() == 400
+					|| accessToken == null) {
+				Toast.makeText(LoginActivity.this, "Wrong email or password!",
+						Toast.LENGTH_SHORT).show();
+
+				Intent i = new Intent(getApplicationContext(),
+						LoginActivity.class);
+				i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+						| Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(i);
+			}
 		}
 	}
 
