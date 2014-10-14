@@ -52,25 +52,25 @@ public class UpcomingTripsAdapter extends BaseAdapter {
 		LinearLayout upcomingTripsLay = (LinearLayout) upcomingInf.inflate(R.layout.upcoming_trips,
 				parent, false);
 		// get title and artist views
-		TextView id = (TextView) upcomingTripsLay.findViewById(R.id.tv_upcomingTrip_id);
-		TextView driverId = (TextView) upcomingTripsLay.findViewById(R.id.tv_upcomingTrip_driverId);
+//		TextView id = (TextView) upcomingTripsLay.findViewById(R.id.tv_upcomingTrip_id);
+//		TextView driverId = (TextView) upcomingTripsLay.findViewById(R.id.tv_upcomingTrip_driverId);
 		TextView driverName = (TextView) upcomingTripsLay.findViewById(R.id.tv_upcomingTrip_driverName);
 		TextView from = (TextView) upcomingTripsLay.findViewById(R.id.tv_upcomingTrip_from);
 		TextView to = (TextView) upcomingTripsLay.findViewById(R.id.tv_upcomingTrip_to);
 		TextView departureDate = (TextView) upcomingTripsLay.findViewById(R.id.tv_upcomingTrip_departureDate);
 		TextView numberOfFreeSeats = (TextView) upcomingTripsLay.findViewById(R.id.tv_upcomingTrip_numberOfFreeSeats);
-		TextView isMine = (TextView) upcomingTripsLay.findViewById(R.id.tv_upcomingTrip_isMine);
+//		TextView isMine = (TextView) upcomingTripsLay.findViewById(R.id.tv_upcomingTrip_isMine);
 		// get song using position
 		UpcomingTrip currentUpcomingTrip = upcomingTrips.get(position);
 		// get title and artist strings
-		id.setText(currentUpcomingTrip.getId());
-		driverId.setText(currentUpcomingTrip.getDriverId());
-		driverName.setText(currentUpcomingTrip.getDriverName());
-		from.setText(currentUpcomingTrip.getFromCity());
-		to.setText(currentUpcomingTrip.getToCity());
-		departureDate.setText(currentUpcomingTrip.getDepartureDate());
-		numberOfFreeSeats.setText(String.valueOf(currentUpcomingTrip.getNumberOfFreeSeats()));
-		isMine.setText(String.valueOf(currentUpcomingTrip.isMine()));
+//		id.setText(currentUpcomingTrip.getId());
+//		driverId.setText(currentUpcomingTrip.getDriverId());
+		driverName.setText("Driver: " + currentUpcomingTrip.getDriverName());
+		from.setText("From: " + currentUpcomingTrip.getFromCity());
+		to.setText("To: " + currentUpcomingTrip.getToCity());
+		departureDate.setText("Departure date: " + currentUpcomingTrip.getDepartureDate());
+		numberOfFreeSeats.setText("Free seats: " + currentUpcomingTrip.getNumberOfFreeSeats());
+		//isMine.setText(currentUpcomingTrip.isMine());
 		// set position as tag
 		upcomingTripsLay.setTag(position);
 		return upcomingTripsLay;

@@ -1,47 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical" >
-
-    <EditText
-        android:id="@+id/et_from_city"
-        android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    
+    <TextView
+        android:id="@+id/txtLabel"
+         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="Enter city of departure" >
-
-        <requestFocus />
-    </EditText>
-
-    <EditText
-        android:id="@+id/et_to_city"
-        android:layout_width="match_parent"
+        android:layout_centerInParent="true"
+        android:textSize="16dp"
+        android:text="Create Trip View"/>
+    
+    <ImageView android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="Enter city of arrival" />
+        android:layout_below="@id/txtLabel"
+        android:src="@drawable/ic_photos"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"/>
+    
 
-    <EditText
-        android:id="@+id/et_available_seats"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:gravity="center"
-        android:hint="Enter the available seats" />
-
-    <EditText
-        android:id="@+id/et_get_date"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10" />
-
-    <Button
-        android:id="@+id/btn_make_trip"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Create Trip"
-        android:textSize="25dp" />
-
-</LinearLayout>
+</RelativeLayout>

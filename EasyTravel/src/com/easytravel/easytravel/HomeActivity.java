@@ -60,7 +60,7 @@ public class HomeActivity extends Activity {
 
 	private ArrayList<NavDrawerItem> navDrawerItems;
 	private NavDrawerListAdapter adapter;
-	
+
 	private String accessToken;
 	private boolean hasAccessToken;
 
@@ -69,13 +69,13 @@ public class HomeActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_home);
-		
+
 		if (getIntent().getStringExtra("access_token") != null) {
 			hasAccessToken = true;
 			accessToken = getIntent().getStringExtra("access_token");
 			Log.d("D1", accessToken);
 		}
-		
+
 		mTitle = mDrawerTitle = getTitle();
 
 		// load slide menu items
@@ -100,18 +100,20 @@ public class HomeActivity extends Activity {
 		// Photos
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[2], navMenuIcons
 				.getResourceId(2, -1)));
-		// Communities, Will add a counter here
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[3], navMenuIcons
-				.getResourceId(3, -1), true, "22"));
-		// Pages
+				.getResourceId(3, -1)));
+		// Communities, Will add a counter here
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[4], navMenuIcons
-				.getResourceId(4, -1)));
-		// What's hot, We will add a counter here
+				.getResourceId(4, -1), true, "22"));
+		// Pages
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[5], navMenuIcons
-				.getResourceId(5, -1), true, "50+"));
-		
+				.getResourceId(5, -1)));
+		// What's hot, We will add a counter here
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[6], navMenuIcons
-				.getResourceId(6, -1)));
+				.getResourceId(6, -1), true, "50+"));
+
+		navDrawerItems.add(new NavDrawerItem(navMenuTitles[7], navMenuIcons
+				.getResourceId(7, -1)));
 
 		// Recycle the typed array
 		navMenuIcons.recycle();
@@ -157,27 +159,31 @@ public class HomeActivity extends Activity {
 	@Override
 	public void onBackPressed() {
 		new AlertDialog.Builder(this)
-	    .setTitle("Exit")
-	    .setMessage("Are you sure you want to exit?")
-	    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-	        public void onClick(DialogInterface dialog, int which) {
-	        	if (hasAccessToken) {
-		        	Intent i = new Intent(getApplicationContext(), LoginActivity.class);
-		        	i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		        	i.putExtra("EXIT", true);
-		        	startActivity(i);
-				}
-	        }
-	     })
-	    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-	        public void onClick(DialogInterface dialog, int which) { 
-	            // do nothing
-	        }
-	     })
-	    .setIcon(android.R.drawable.ic_dialog_alert)
-	     .show();
+				.setTitle("Exit")
+				.setMessage("Are you sure you want to exit?")
+				.setPositiveButton(android.R.string.yes,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								if (hasAccessToken) {
+									Intent i = new Intent(
+											getApplicationContext(),
+											LoginActivity.class);
+									i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+									i.putExtra("EXIT", true);
+									startActivity(i);
+								}
+							}
+						})
+				.setNegativeButton(android.R.string.no,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								// do nothing
+							}
+						}).setIcon(android.R.drawable.ic_dialog_alert).show();
 	}
-	
+
 	/**
 	 * Slide menu item click listener
 	 * */
@@ -241,15 +247,18 @@ public class HomeActivity extends Activity {
 			fragment = new CreateTripFragment();
 			break;
 		case 3:
-			fragment = new CommunityFragment();
+			fragment = new SubscribedUsersFragment();
 			break;
 		case 4:
-			fragment = new PagesFragment();
+			fragment = new CommunityFragment();
 			break;
 		case 5:
-			fragment = new WhatsHotFragment();
+			fragment = new PagesFragment();
 			break;
 		case 6:
+			fragment = new WhatsHotFragment();
+			break;
+		case 7:
 			askForLoggingOut();
 			break;
 
@@ -274,15 +283,15 @@ public class HomeActivity extends Activity {
 	}
 
 	@SuppressLint("NewApi")
-	private void logoutUser(){
+	private void logoutUser() {
 		Intent i = new Intent(HomeActivity.this, LoggingOutActivity.class);
 		i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(i);
-		
+
 		Logout logout = new Logout();
 		logout.execute(accessToken);
 	}
-	
+
 	private class Logout extends AsyncTask<String, Void, HttpResponse> {
 
 		protected HttpResponse doInBackground(String... params) {
@@ -325,49 +334,50 @@ public class HomeActivity extends Activity {
 				i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 				i.putExtra("Logout", true);
 				startActivity(i);
-				
-//				Intent i = new Intent(LoginActivity.this, HomeActivity.class);
-//				i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-//						| Intent.FLAG_ACTIVITY_NEW_TASK);
-//				startActivity(i);
 
 			} else if (response.getStatusLine().getStatusCode() == 400) {
-				Toast.makeText(HomeActivity.this, "An error occurred while logging out!",
+				Toast.makeText(HomeActivity.this,
+						"An error occurred while logging out!",
 						Toast.LENGTH_SHORT).show();
 			}
 		}
 
 	}
-	
+
 	private void askForLoggingOut() {
 		new AlertDialog.Builder(this)
-	    .setTitle("Logout")
-	    .setMessage("Are you sure you want to logout?")
-	    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-	        public void onClick(DialogInterface dialog, int which) {
-	        	logoutUser();
-	        }
-	     })
-	    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-	        @SuppressLint("NewApi")
-			public void onClick(DialogInterface dialog, int which) {
-	        	Fragment fragment = new HomeFragment();
-	        	
-	        	if (fragment != null) {
-	    			FragmentManager fragmentManager = getFragmentManager();
-	    			fragmentManager.beginTransaction()
-	    					.replace(R.id.frame_container, fragment).commit();
+				.setTitle("Logout")
+				.setMessage("Are you sure you want to logout?")
+				.setPositiveButton(android.R.string.yes,
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								logoutUser();
+							}
+						})
+				.setNegativeButton(android.R.string.no,
+						new DialogInterface.OnClickListener() {
+							@SuppressLint("NewApi")
+							public void onClick(DialogInterface dialog,
+									int which) {
+								Fragment fragment = new HomeFragment();
 
-	    			// update selected item and title, then close the drawer
-	    			mDrawerList.setItemChecked(0, true);
-	    			mDrawerList.setSelection(0);
-	    			setTitle(navMenuTitles[0]);
-	    			mDrawerLayout.closeDrawer(mDrawerList);
-	    		}
-	        }
-	     })
-	    .setIcon(android.R.drawable.ic_dialog_alert)
-	     .show();
+								if (fragment != null) {
+									FragmentManager fragmentManager = getFragmentManager();
+									fragmentManager
+											.beginTransaction()
+											.replace(R.id.frame_container,
+													fragment).commit();
+
+									// update selected item and title, then
+									// close the drawer
+									mDrawerList.setItemChecked(0, true);
+									mDrawerList.setSelection(0);
+									setTitle(navMenuTitles[0]);
+									mDrawerLayout.closeDrawer(mDrawerList);
+								}
+							}
+						}).setIcon(android.R.drawable.ic_dialog_alert).show();
 	}
 
 	@SuppressLint("NewApi")
