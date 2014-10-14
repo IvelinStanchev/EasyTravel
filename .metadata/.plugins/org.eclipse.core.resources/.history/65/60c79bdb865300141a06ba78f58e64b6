@@ -1,0 +1,12 @@
+/com/
+/.gitignore
+/android/
+/.classpath
+/.project
+/.settings/
+/AndroidManifest.xml
+/bin/
+/gen/
+/ic_launcher-web.png
+/libs/
+/proguard-project.txt

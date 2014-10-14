@@ -1,0 +1,8 @@
+/com/
+/.gitignore
+/android/
+/.classpath
+/.project
+/.settings/
+/AndroidManifest.xml
+/bin/

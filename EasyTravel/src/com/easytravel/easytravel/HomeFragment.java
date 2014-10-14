@@ -6,7 +6,6 @@ import java.util.concurrent.ExecutionException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
@@ -14,21 +13,22 @@ import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Paint.Join;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
@@ -56,7 +56,8 @@ public class HomeFragment extends Fragment {
 	private ListView listView;
 	private View footerView;
 	private int doubleClickListener = 0;
-	
+	private SwipeGestureListener gestureListener;
+
 	public HomeFragment() {
 	}
 
@@ -67,137 +68,164 @@ public class HomeFragment extends Fragment {
 
 		View rootView = inflater.inflate(R.layout.fragment_home, container,
 				false);
-		
+
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(getActivity());
 
 		accessToken = preferences.getString("access_token", "");
-		
+
 		upcomingTrips = new ArrayList<UpcomingTrip>();
 		upcomingTripsForBundle = new ArrayList<UpcomingTrip>();
-		
-		footerView = ((LayoutInflater) getActivity()
-				.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(
+
+		footerView = ((LayoutInflater) getActivity().getSystemService(
+				Context.LAYOUT_INFLATER_SERVICE)).inflate(
 				R.layout.listview_footer, null, false);
-		
+
 		listView = (ListView) rootView.findViewById(R.id.upcoming_trips_list);
-		
+
 		listView.addFooterView(footerView);
-		
+
 		if (savedInstanceState != null) {
-			ArrayList<UpcomingTrip> savedItems = savedInstanceState.getParcelableArrayList("array");
+			ArrayList<UpcomingTrip> savedItems = savedInstanceState
+					.getParcelableArrayList("array");
 			upcomingTrips = savedItems;
 			upcomingTripsForBundle = savedItems;
 			counter = upcomingTrips.size();
 			page = upcomingTripsForBundle.size() / 10;
 		}
-		
+
 		adapter = new UpcomingTripsAdapter(getActivity(), upcomingTrips);
 		listView.setAdapter(adapter);
-		
+
+		gestureListener = new SwipeGestureListener(getActivity());
+		listView.setOnTouchListener(gestureListener);
+
 		listView.setOnItemLongClickListener(new OnItemLongClickListener() {
 
 			@Override
 			public boolean onItemLongClick(AdapterView<?> parent, View view,
 					int position, long id) {
 				final UpcomingTrip item = upcomingTripsForBundle.get(position);
-				
+
 				new AlertDialog.Builder(getActivity())
-				.setTitle("Subscribe to that user ?")
-				.setMessage("Subscribe to that user ?")
-				.setPositiveButton(android.R.string.yes,
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int which) {
-								
-								Fragment fragment = new SubscribeFragment();
-								
-								Bundle bundle = new Bundle();
-								bundle.putString("driver_id", item.getDriverId());
-								fragment.setArguments(bundle);
-								
-								if (fragment != null) {
-									FragmentManager fragmentManager = getFragmentManager();
-									fragmentManager.beginTransaction()
-											.replace(R.id.frame_container, fragment).commit();
-								}
-								
-							}
-						})
-				.setNegativeButton(android.R.string.no,
-						new DialogInterface.OnClickListener() {
-							public void onClick(DialogInterface dialog,
-									int which) {
-								// do nothing
-							}
-						}).setIcon(android.R.drawable.ic_dialog_alert).show();
-				
+						.setTitle("Subscribe to that user ?")
+						.setMessage("Subscribe to that user ?")
+						.setPositiveButton(android.R.string.yes,
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int which) {
+
+										Fragment fragment = new SubscribeFragment();
+
+										Bundle bundle = new Bundle();
+										bundle.putString("driver_id",
+												item.getDriverId());
+										fragment.setArguments(bundle);
+
+										if (fragment != null) {
+											FragmentManager fragmentManager = getFragmentManager();
+											fragmentManager
+													.beginTransaction()
+													.replace(
+															R.id.frame_container,
+															fragment).commit();
+										}
+
+									}
+								})
+						.setNegativeButton(android.R.string.no,
+								new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog,
+											int which) {
+										// do nothing
+									}
+								}).setIcon(android.R.drawable.ic_dialog_alert)
+						.show();
+
 				return false;
 			}
-			
+
 		});
-		
+
 		listView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
-			public void onItemClick(AdapterView<?> parent, View view, int position,
-					long id) {
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
 				doubleClickListener++;
-		        Handler handler = new Handler();
-		        Runnable r = new Runnable() {
+				Handler handler = new Handler();
+				Runnable r = new Runnable() {
 
-		            @Override
-		            public void run() {
-		            	doubleClickListener = 0;
-		            }
-		        };
+					@Override
+					public void run() {
+						doubleClickListener = 0;
+					}
+				};
 
-		        if (doubleClickListener == 1) {
-		            //Single click
-		            handler.postDelayed(r, 350);
-		        } else if (doubleClickListener == 2) {
-		            //Double click
-		        	doubleClickListener = 0;
-		        	final UpcomingTrip doubleClickedUpcomingTrip = upcomingTripsForBundle.get(position);
-		        	
-		        	
-		        	new AlertDialog.Builder(getActivity())
-					.setTitle("Join trip")
-					.setMessage("Join to that trip?")
-					.setPositiveButton(android.R.string.yes,
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int which) {
-									
-									try {
-										HttpResponse response = new JoinTrip().execute(doubleClickedUpcomingTrip.getId(), accessToken).get();
-										
-										if (response.getStatusLine().getStatusCode() == 200) {
-											Toast.makeText(getActivity(), "Successfully joined a trip!", Toast.LENGTH_SHORT).show();
+				if (doubleClickListener == 1) {
+					// Single click
+					handler.postDelayed(r, 350);
+				} else if (doubleClickListener == 2) {
+					// Double click
+					doubleClickListener = 0;
+					final UpcomingTrip doubleClickedUpcomingTrip = upcomingTripsForBundle
+							.get(position);
+
+					new AlertDialog.Builder(getActivity())
+							.setTitle("Join trip")
+							.setMessage("Join to that trip?")
+							.setPositiveButton(android.R.string.yes,
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog,
+												int which) {
+
+											try {
+												HttpResponse response = new JoinTrip()
+														.execute(
+																doubleClickedUpcomingTrip
+																		.getId(),
+																accessToken)
+														.get();
+
+												if (response.getStatusLine()
+														.getStatusCode() == 200) {
+													Toast.makeText(
+															getActivity(),
+															"Successfully joined a trip!",
+															Toast.LENGTH_SHORT)
+															.show();
+												} else {
+													Toast.makeText(
+															getActivity(),
+															"Already part of that trip!",
+															Toast.LENGTH_SHORT)
+															.show();
+												}
+											} catch (InterruptedException e) {
+												// TODO Auto-generated catch
+												// block
+												e.printStackTrace();
+											} catch (ExecutionException e) {
+												// TODO Auto-generated catch
+												// block
+												e.printStackTrace();
+											}
 										}
-										else{
-											Toast.makeText(getActivity(), "Already part of that trip!", Toast.LENGTH_SHORT).show();
+									})
+							.setNegativeButton(android.R.string.no,
+									new DialogInterface.OnClickListener() {
+										public void onClick(
+												DialogInterface dialog,
+												int which) {
+											// do nothing
 										}
-									} catch (InterruptedException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
-									} catch (ExecutionException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
-									}
-								}
-							})
-					.setNegativeButton(android.R.string.no,
-							new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog,
-										int which) {
-									// do nothing
-								}
-							}).setIcon(android.R.drawable.ic_dialog_alert).show();
-		        }
+									})
+							.setIcon(android.R.drawable.ic_dialog_alert).show();
+				}
 			}
 		});
-		
+
 		listView.setOnScrollListener(new OnScrollListener() {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
@@ -217,22 +245,22 @@ public class HomeFragment extends Fragment {
 
 		return rootView;
 	}
-	
+
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putParcelableArrayList("array", upcomingTripsForBundle);
 	}
-	
-	private class GetUpcomingTrips extends AsyncTask<Integer, Void, Void>{
+
+	private class GetUpcomingTrips extends AsyncTask<Integer, Void, Void> {
 
 		@Override
 		protected Void doInBackground(Integer... params) {
-			
+
 			loadingMore = true;
-			
+
 			int page = params[0];
-			
+
 			DefaultHttpClient httpClient = new DefaultHttpClient();
 			HttpGet httpget = new HttpGet(
 					"http://spa2014.bgcoder.com/api/trips?page=" + page);
@@ -244,66 +272,139 @@ public class HomeFragment extends Fragment {
 
 				HttpEntity entity = response.getEntity();
 
-			    String responseFinal = EntityUtils.toString(entity);
-			    
-			    JSONArray jsonObj = new JSONArray(responseFinal);
-                
-                // Getting JSON Array node
-                //JSONArray trips = jsonObj.getJSONArray(responseFinal);
-                
-			    upcomingTrips = new ArrayList<UpcomingTrip>();
-			    
-                
-			    //String address = c.getString("formatted_address");
-				
-			    
-			    
-                for (int i = 0; i < 10; i++) {
-                	JSONObject c = jsonObj.getJSONObject(i);
-                	
-                	UpcomingTrip currentUpcomingTrip = new UpcomingTrip(c.getString("id"), 
-			    			c.getString("driverId"), 
-			    			c.getString("driverName"), 
-			    			c.getString("from"), 
-			    			c.getString("to"), 
-			    			c.getString("departureDate"), 
-			    			c.getString("numberOfFreeSeats"), 
-			    			c.getString("isMine"));
-                	
-                	upcomingTripsForBundle.add(currentUpcomingTrip);
-                	
-			    	upcomingTrips.add(currentUpcomingTrip);
+				String responseFinal = EntityUtils.toString(entity);
+
+				JSONArray jsonObj = new JSONArray(responseFinal);
+
+				// Getting JSON Array node
+				// JSONArray trips = jsonObj.getJSONArray(responseFinal);
+
+				upcomingTrips = new ArrayList<UpcomingTrip>();
+
+				// String address = c.getString("formatted_address");
+
+				for (int i = 0; i < 10; i++) {
+					JSONObject c = jsonObj.getJSONObject(i);
+
+					UpcomingTrip currentUpcomingTrip = new UpcomingTrip(
+							c.getString("id"), c.getString("driverId"),
+							c.getString("driverName"), c.getString("from"),
+							c.getString("to"), c.getString("departureDate"),
+							c.getString("numberOfFreeSeats"),
+							c.getString("isMine"));
+
+					upcomingTripsForBundle.add(currentUpcomingTrip);
+
+					upcomingTrips.add(currentUpcomingTrip);
 				}
-                
+
 				String pesho;
 				pesho = "asdf";
-				
-				//return response;
+
+				// return response;
 			} catch (Exception e) {
 				Log.d("D1", e.toString());
 			}
 
 			return null;
 		}
-		
+
 		@Override
 		protected void onPostExecute(Void result) {
 			// TODO Auto-generated method stub
 			super.onPostExecute(result);
-			
+
 			if (upcomingTrips != null && upcomingTrips.size() > 0) {
 				for (int i = 0; i < upcomingTrips.size(); i++)
 					adapter.add(upcomingTrips.get(i));
 				loadingMore = false;
 			}
-			
+
 			if (upcomingTrips.size() == 0) {
-				Toast.makeText(getActivity(), "No more items!", Toast.LENGTH_SHORT).show();
+				Toast.makeText(getActivity(), "No more items!",
+						Toast.LENGTH_SHORT).show();
 				listView.removeFooterView(footerView);
 			}
-			
+
 			adapter.notifyDataSetChanged();
-			
+
 		}
+	}
+
+	class SwipeGestureListener extends SimpleOnGestureListener implements
+			OnTouchListener {
+		Context context;
+		GestureDetector gDetector;
+		static final int SWIPE_MIN_DISTANCE = 120;
+		static final int SWIPE_MAX_OFF_PATH = 250;
+		static final int SWIPE_THRESHOLD_VELOCITY = 200;
+
+		public SwipeGestureListener() {
+			super();
+		}
+
+		public SwipeGestureListener(Context context) {
+			this(context, null);
+		}
+
+		public SwipeGestureListener(Context context, GestureDetector gDetector) {
+
+			if (gDetector == null)
+				gDetector = new GestureDetector(context, this);
+
+			this.context = context;
+			this.gDetector = gDetector;
+		}
+
+		@Override
+		public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+				float velocityY) {
+
+			final int position = listView.pointToPosition(
+					Math.round(e1.getX()), Math.round(e1.getY()));
+
+			//String currentTrip =  listView.getItemAtPosition(position);
+			//Get the current trip info and make a toast
+
+			if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH) {
+				if (Math.abs(e1.getX() - e2.getX()) > SWIPE_MAX_OFF_PATH
+						|| Math.abs(velocityY) < SWIPE_THRESHOLD_VELOCITY) {
+					return false;
+				}
+				/*if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE) {
+					Toast.makeText(getActivity(), "bottomToTop" + currentTrip,
+							Toast.LENGTH_SHORT).show();
+				} else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE) {
+					Toast.makeText(getActivity(),
+							"topToBottom  " + currentTrip, Toast.LENGTH_SHORT)
+							.show();
+				}*/
+			} else {
+				if (Math.abs(velocityX) < SWIPE_THRESHOLD_VELOCITY) {
+					return false;
+				}
+				/*if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE) {
+					Toast.makeText(getActivity(),
+							"swipe RightToLeft " + currentTrip, 5000).show();
+				} else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE) {
+					Toast.makeText(getActivity(),
+							"swipe LeftToright  " + currentTrip, 5000).show();
+				}*/
+			}
+
+			return super.onFling(e1, e2, velocityX, velocityY);
+
+		}
+
+		@Override
+		public boolean onTouch(View v, MotionEvent event) {
+
+			return gDetector.onTouchEvent(event);
+		}
+
+		public GestureDetector getDetector() {
+			return gDetector;
+		}
+
 	}
 }
