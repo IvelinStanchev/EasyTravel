@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="10dp" >
+
+            <TextView
+                android:id="@+id/tv_create_trip_from"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Starting town: "
+                android:textColor="#FFFFFF"
+                android:textSize="25sp" />
+
+            <Spinner
+                android:id="@+id/spinner_create_town_startTown"
+                android:layout_width="150dp"
+                android:layout_height="34dp"
+                android:background="#FFFFFF"
+                android:drawSelectorOnTop="true"
+                android:entries="@array/array_names" >
+            </Spinner>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="10dp" >
+
+            <TextView
+                android:id="@+id/tv_create_trip_to"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ending town: "
+                android:textColor="#FFFFFF"
+                android:textSize="25sp" />
+
+            <Spinner
+                android:id="@+id/spinner_create_town_endTown"
+                android:layout_width="150dp"
+                android:layout_height="34dp"
+                android:background="#FFFFFF"
+                android:drawSelectorOnTop="true"
+                android:entries="@array/array_names" >
+            </Spinner>
+        </LinearLayout>
+
+    <EditText
+        android:id="@+id/et_available_seats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="Enter the available seats" />
+
+    <EditText
+        android:id="@+id/et_get_date"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="Enter date in the format: \n dd/mm/yyyy hh/mm/ss" />
+
+    <Button
+        android:id="@+id/btn_make_trip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Trip"
+        android:textSize="25dp" />
+
+</LinearLayout>
