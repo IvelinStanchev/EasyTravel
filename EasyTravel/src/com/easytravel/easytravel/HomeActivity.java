@@ -91,15 +91,18 @@ public class HomeActivity extends Activity {
 		// Find Trips
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[2], navMenuIcons
 				.getResourceId(2, -1)));
+		// Filter Trips
+				navDrawerItems.add(new NavDrawerItem(navMenuTitles[3], navMenuIcons
+						.getResourceId(3, -1)));
 		// Find People
-		navDrawerItems.add(new NavDrawerItem(navMenuTitles[3], navMenuIcons
-				.getResourceId(3, -1)));
-		// Subscribed Drivers
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[4], navMenuIcons
 				.getResourceId(4, -1)));
-		// Logout
+		// Subscribed Drivers
 		navDrawerItems.add(new NavDrawerItem(navMenuTitles[5], navMenuIcons
 				.getResourceId(5, -1)));
+		// Logout
+		navDrawerItems.add(new NavDrawerItem(navMenuTitles[6], navMenuIcons
+				.getResourceId(6, -1)));
 
 		// Recycle the typed array
 		navMenuIcons.recycle();
@@ -233,12 +236,15 @@ public class HomeActivity extends Activity {
 			fragment = new HomeFragment(true);
 			break;
 		case 3:
-			fragment = new FindPeopleFragment();
+			fragment = new FilterTripsFragment();
 			break;
 		case 4:
-			fragment = new SubscribedUsersFragment();
+			fragment = new FindPeopleFragment();
 			break;
 		case 5:
+			fragment = new SubscribedUsersFragment();
+			break;
+		case 6:
 			askForLoggingOut();
 			break;
 		default:

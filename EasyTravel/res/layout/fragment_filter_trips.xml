@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#658989"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="10dp" >
+
+            <TextView
+                android:id="@+id/tv_filter_from"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Starting town: "
+                android:textColor="#FFFFFF"
+                android:textSize="25sp" />
+
+            <Spinner
+                android:id="@+id/spinner_startTown"
+                android:layout_width="150dp"
+                android:layout_height="34dp"
+                android:background="#FFFFFF"
+                android:drawSelectorOnTop="true"
+                android:entries="@array/array_names" >
+            </Spinner>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingLeft="10dp" >
+
+            <TextView
+                android:id="@+id/tv_filter_to"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ending town: "
+                android:textColor="#FFFFFF"
+                android:textSize="25sp" />
+
+            <Spinner
+                android:id="@+id/spinner_endTown"
+                android:layout_width="150dp"
+                android:layout_height="34dp"
+                android:background="#FFFFFF"
+                android:drawSelectorOnTop="true"
+                android:entries="@array/array_names" >
+            </Spinner>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_filter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Filter"
+            android:textColor="#FFFFFF"
+            android:textSize="25sp" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/list_view_filter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+    </ListView>
+
+</LinearLayout>

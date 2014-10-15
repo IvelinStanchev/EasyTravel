@@ -12,6 +12,7 @@
         <item>Upcoming trips</item>
         <item>Create Trip</item>
         <item>Find Trips</item>
+        <item>Filter Trips</item>
         <item>Find People</item>
         <item>Subscribed drivers</item>
         <item>Logout</item>
@@ -23,25 +24,272 @@
         <item>@drawable/ic_car</item>
         <item>@drawable/ic_create_trip</item>
         <item>@drawable/ic_search</item>
+        <item>@drawable/ic_filter</item>
         <item>@drawable/ic_people</item>
         <item>@drawable/ic_user_info</item>
         <item>@drawable/ic_logout</item>
     </array>
 
-    <string-array name="array_names">
-        <item>Volvo</item>
-        <item>Saab</item>
-        <item>Mercedes</item>
-        <item>Audi</item>
-    </string-array>
-    <string-array name="array_name_values">
-        <item>36</item>
-        <item>45</item>
-        <item>56</item>
-        <item>71</item>
-    </string-array>
-
     <!-- Content Description -->
     <string name="desc_list_item_icon">Item Icon</string>
+    
+        <string-array name="array_names">
+        <item>Aheloy</item>
+        <item>Ahtopol</item>
+        <item>Aksakovo</item>
+        <item>Alfatar</item>
+        <item>Antonovo</item>
+        <item>Apriltsi</item>
+        <item>Ardino</item>
+        <item>Asenovgrad</item>
+        <item>Aytos</item>
+        <item>Balchik</item>
+        <item>Balgarovo</item>
+        <item>Bankya</item>
+        <item>Bansko</item>
+        <item>Banya</item>
+        <item>Batak</item>
+        <item>Batanovtsi</item>
+        <item>Belene</item>
+        <item>Belitsa</item>
+        <item>Belogradchik</item>
+        <item>Beloslav</item>
+        <item>Belovo</item>
+        <item>Berkovitsa</item>
+        <item>Blagoevgrad</item>
+        <item>Boboshevo</item>
+        <item>Bobov Dol</item>
+        <item>Bolyarovo</item>
+        <item>Borovo</item>
+        <item>Botevgrad</item>
+        <item>Boychinovtsi</item>
+        <item>Bozhurishte</item>
+        <item>Bratsigovo</item>
+        <item>Bregovo</item>
+        <item>Breznik</item>
+        <item>Brezovo</item>
+        <item>Brusartsi</item>
+        <item>Buhovo</item>
+        <item>Burgas</item>
+        <item>Byala</item>
+        <item>Byala Cherkva</item>
+        <item>Byala Slatina</item>
+        <item>Chepelare</item>
+        <item>Chernomorets</item>
+        <item>Cherven Bryag</item>
+        <item>Chiprovtsi</item>
+        <item>Chirpan</item>
+        <item>Dalgopol</item>
+        <item>Debelets</item>
+        <item>Devin</item>
+        <item>Devnya</item>
+        <item>Dimitrovgrad</item>
+        <item>Dimovo</item>
+        <item>Dobrich</item>
+        <item>Dobrinishte</item>
+        <item>Dolna Banya</item>
+        <item>Dolna Mitropoliya</item>
+        <item>Dolna Oryahovitsa</item>
+        <item>Dolni Chiflik</item>
+        <item>Dolni Dabnik</item>
+        <item>Dospat</item>
+        <item>Dragoman</item>
+        <item>Dryanovo</item>
+        <item>Dulovo</item>
+        <item>Dunavtsi</item>
+        <item>Dupnitsa</item>
+        <item>Dve Mogili</item>
+        <item>Dzhebel</item>
+        <item>Elena</item>
+        <item>Elhovo</item>
+        <item>Elin Pelin</item>
+        <item>Etropole</item>
+        <item>Gabrovo</item>
+        <item>Galabovo</item>
+        <item>General Toshevo</item>
+        <item>Glavinitsa</item>
+        <item>Glodzhevo</item>
+        <item>Godech</item>
+        <item>Gorna Oryahovitsa</item>
+        <item>Gotse Delchev</item>
+        <item>Gramada</item>
+        <item>Gulyantsi</item>
+        <item>Gurkovo</item>
+        <item>Hadzhidimovo</item>
+        <item>Harmanli</item>
+        <item>Haskovo</item>
+        <item>Hisarya</item>
+        <item>Ignatievo</item>
+        <item>Ihtiman</item>
+        <item>Iskar</item>
+        <item>Isperih</item>
+        <item>Ivaylovgrad</item>
+        <item>Kableshkovo</item>
+        <item>Kalofer</item>
+        <item>Kameno</item>
+        <item>Kaolinovo</item>
+        <item>Kardzhali</item>
+        <item>Karlovo</item>
+        <item>Karnobat</item>
+        <item>Kaspichan</item>
+        <item>Kavarna</item>
+        <item>Kazanlak</item>
+        <item>Kermen</item>
+        <item>Kilifarevo</item>
+        <item>Kiten</item>
+        <item>Klisura</item>
+        <item>Knezha</item>
+        <item>Kocherinovo</item>
+        <item>Koprivshtitsa</item>
+        <item>Kostandovo</item>
+        <item>Kostenets</item>
+        <item>Kostinbrod</item>
+        <item>Kotel</item>
+        <item>Koynare</item>
+        <item>Kozloduy</item>
+        <item>Kran</item>
+        <item>Kresna</item>
+        <item>Krichim</item>
+        <item>Krivodol</item>
+        <item>Krumovgrad</item>
+        <item>Kubrat</item>
+        <item>Kuklen</item>
+        <item>Kula</item>
+        <item>Kyustendil</item>
+        <item>Laki</item>
+        <item>Letnitsa</item>
+        <item>Levski</item>
+        <item>Lom</item>
+        <item>Lovech</item>
+        <item>Loznitsa</item>
+        <item>Lukovit</item>
+        <item>Lyaskovets</item>
+        <item>Lyubimets</item>
+        <item>Madan</item>
+        <item>Madzharovo</item>
+        <item>Maglizh</item>
+        <item>Malko Tarnovo</item>
+        <item>Marten</item>
+        <item>Melnik</item>
+        <item>Merichleri</item>
+        <item>Mezdra</item>
+        <item>Miziya</item>
+        <item>Momchilgrad</item>
+        <item>Momin Prohod</item>
+        <item>Montana</item>
+        <item>Nedelino</item>
+        <item>Nesebar</item>
+        <item>Nikolaevo</item>
+        <item>Nikopol</item>
+        <item>Nova Zagora</item>
+        <item>Novi Iskar</item>
+        <item>Novi Pazar</item>
+        <item>Obzor</item>
+        <item>Omurtag</item>
+        <item>Opaka</item>
+        <item>Oryahovo</item>
+        <item>Panagyurishte</item>
+        <item>Parvomay</item>
+        <item>Pavel Banya</item>
+        <item>Pavlikeni</item>
+        <item>Pazardzhik</item>
+        <item>Pernik</item>
+        <item>Perushtitsa</item>
+        <item>Peshtera</item>
+        <item>Petrich</item>
+        <item>Pirdop</item>
+        <item>Plachkovtsi</item>
+        <item>Pleven</item>
+        <item>Pliska</item>
+        <item>Plovdiv</item>
+        <item>Polski Trambesh</item>
+        <item>Pomorie</item>
+        <item>Popovo</item>
+        <item>Pordim</item>
+        <item>Pravets</item>
+        <item>Primorsko</item>
+        <item>Provadiya</item>
+        <item>Radnevo</item>
+        <item>Radomir</item>
+        <item>Rakitovo</item>
+        <item>Rakovski</item>
+        <item>Razgrad</item>
+        <item>Razlog</item>
+        <item>Rila</item>
+        <item>Roman</item>
+        <item>Rudozem</item>
+        <item>Ruse</item>
+        <item>Sadovo</item>
+        <item>Saedinenie</item>
+        <item>Samokov</item>
+        <item>Sandanski</item>
+        <item>Sapareva Banya</item>
+        <item>Sarnitsa</item>
+        <item>Senovo</item>
+        <item>Septemvri</item>
+        <item>Sevlievo</item>
+        <item>Shabla</item>
+        <item>Shipka</item>
+        <item>Shivachevo</item>
+        <item>Shumen</item>
+        <item>Silistra</item>
+        <item>Simeonovgrad</item>
+        <item>Simitli</item>
+        <item>Slavyanovo</item>
+        <item>Sliven</item>
+        <item>Slivnitsa</item>
+        <item>Slivo Pole</item>
+        <item>Smolyan</item>
+        <item>Smyadovo</item>
+        <item>Sofia</item>
+        <item>Sopot</item>
+        <item>Sozopol</item>
+        <item>Sredets</item>
+        <item>Stamboliyski</item>
+        <item>Stara Zagora</item>
+        <item>Straldzha</item>
+        <item>Strazhitsa</item>
+        <item>Strelcha</item>
+        <item>Suhindol</item>
+        <item>Sungurlare</item>
+        <item>Suvorovo</item>
+        <item>Sveti Vlas</item>
+        <item>Svilengrad</item>
+        <item>Svishtov</item>
+        <item>Svoge</item>
+        <item>Targovishte</item>
+        <item>Tervel</item>
+        <item>Teteven</item>
+        <item>Topolovgrad</item>
+        <item>Tran</item>
+        <item>Trastenik</item>
+        <item>Troyan</item>
+        <item>Tryavna</item>
+        <item>Tsar Kaloyan</item>
+        <item>Tsarevo</item>
+        <item>Tutrakan</item>
+        <item>Tvarditsa</item>
+        <item>Ugarchin</item>
+        <item>Valchedram</item>
+        <item>Valchi Dol</item>
+        <item>Varbitsa</item>
+        <item>Varna</item>
+        <item>Varshets</item>
+        <item>Veliki Preslav</item>
+        <item>Veliko Tarnovo</item>
+        <item>Velingrad</item>
+        <item>Vetovo</item>
+        <item>Vetren</item>
+        <item>Vidin</item>
+        <item>Vratsa</item>
+        <item>Yablanitsa</item>
+        <item>Yakoruda</item>
+        <item>Yambol</item>
+        <item>Zavet</item>
+        <item>Zemen</item>
+        <item>Zlataritsa</item>
+        <item>Zlatitsa</item>
+        <item>Zlatograd<item></item></item>
+    </string-array>
 
 </resources>

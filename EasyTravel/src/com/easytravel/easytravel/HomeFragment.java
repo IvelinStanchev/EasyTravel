@@ -96,8 +96,6 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 					.getInstance().getTimeInMillis() - 2 * 60 * 1000)) {
 				lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0,
 						0, this);
-				Toast.makeText(getActivity(), "In the second if",
-						Toast.LENGTH_SHORT).show();
 			}
 
 			new GetLocation().execute(String.valueOf(location.getLatitude()),
@@ -254,7 +252,10 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 					page++;
 					
 					if (hasLocation) {
-						new GetUpcomingTripsAtMyLocation().execute(page);
+						if (currentTown != null) {
+							new GetUpcomingTripsAtMyLocation().execute(page);
+						}
+						
 					}
 					else{
 						new GetUpcomingTrips().execute(page);
@@ -345,7 +346,7 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 
 				// String address = c.getString("formatted_address");
 
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < jsonObj.length(); i++) {
 					JSONObject c = jsonObj.getJSONObject(i);
 
 					UpcomingTrip currentUpcomingTrip = new UpcomingTrip(
@@ -399,7 +400,7 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 
 			loadingMore = true;
 
-			int page = params[0];
+			page = params[0];
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
 
@@ -428,7 +429,7 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 
 				// String address = c.getString("formatted_address");
 
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < jsonObj.length(); i++) {
 					JSONObject c = jsonObj.getJSONObject(i);
 
 					UpcomingTrip currentUpcomingTrip = new UpcomingTrip(
@@ -536,6 +537,9 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 			super.onPostExecute(result);
 
 			currentTown = result;
+			upcomingTrips = new ArrayList<UpcomingTrip>();
+			upcomingTripsForBundle = new ArrayList<UpcomingTrip>();
+			new GetUpcomingTripsAtMyLocation().execute(page);
 		}
 
 	}

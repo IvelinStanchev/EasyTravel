@@ -2,15 +2,14 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    >
+    android:orientation="vertical" >
 
     <CheckBox
         android:id="@+id/cb_useMyLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#00FF00"
-        android:text="Use My Location" />
+        android:text="Use My Location"
+        android:textColor="#00FF00" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -30,9 +29,8 @@
             android:layout_width="91dp"
             android:layout_height="34dp"
             android:drawSelectorOnTop="true"
-            android:textColor="#00FF00"
             android:entries="@array/array_names"
-            android:entryValues="@array/array_name_values" >
+            android:textColor="#00FF00" >
         </Spinner>
     </LinearLayout>
 
