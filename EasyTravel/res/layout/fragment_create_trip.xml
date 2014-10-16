@@ -68,7 +68,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:gravity="center"
-        android:hint="Enter date in the format: \n dd/mm/yyyy hh/mm/ss"
+        android:hint="Enter date in the format: \n dd/mm/yyyy hh:mm:ss"
         android:textColor="#FFFFFF"
         android:textSize="25sp" />
 
@@ -76,6 +76,7 @@
         android:id="@+id/btn_make_trip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
         android:text="Create Trip"
         android:textSize="25dp" />
 

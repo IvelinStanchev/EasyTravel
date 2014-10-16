@@ -20,6 +20,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.R.integer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -44,32 +45,41 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.easytravel.easytravel.progressactivities.LoggingInActivity;
+import com.easytravel.easytravel.services.SubscribeService;
 
 public class LoginActivity extends Activity implements OnClickListener {
 
-	private TextView register;
-	private EditText email;
-	private EditText password;
-	private Button login;
-	private ProgressBar progressBar;
-	private String accessToken;
-	private String expirationDate;
+	private static final String NO_INTERNET_CONNECTION_MESSAGE = "No Internet Connection!";
+	private static final String LOGIN_URL = "http://spa2014.bgcoder.com/api/users/login";
+	private static final int STATUS_CODE_OK = 200;
+	private static final int STATUS_CODE_BAD_REQUEST = 400;
+	private static final String SUCCESSFULLY_LOGGED_IN_MESSAGE = "Successfully logged in!";
+	private static final String ERROR_MESSAGE = "Wrong email or password!";
 
-	private static Map<String, Integer> map = new HashMap<String, Integer>();
+	private TextView mRegister;
+	private EditText mEmail;
+	private EditText mPassword;
+	private Button mLogin;
+	private String mAccessToken;
+	private String mExpirationDate;
+	private InternetConnection mInternetConnection;
+	private static Map<String, Integer> sMonthsValues = new HashMap<String, Integer>();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_login_form);
 
-		register = (TextView) findViewById(R.id.tv_registerLogin);
-		email = (EditText) findViewById(R.id.et_emailLogin);
-		password = (EditText) findViewById(R.id.et_passwordLogin);
-		login = (Button) findViewById(R.id.btn_login);
+		mRegister = (TextView) findViewById(R.id.tv_registerLogin);
+		mEmail = (EditText) findViewById(R.id.et_emailLogin);
+		mPassword = (EditText) findViewById(R.id.et_passwordLogin);
+		mLogin = (Button) findViewById(R.id.btn_login);
 
-		login.setOnClickListener(this);
+		mLogin.setOnClickListener(this);
 
-		if (isNetworkAvailable()) {
+		mInternetConnection = new InternetConnection(this);
+
+		if (mInternetConnection.isNetworkAvailable()) {
 			if (getIntent().getBooleanExtra("EXIT", false)) {
 				System.exit(0);
 				finish();
@@ -79,58 +89,52 @@ public class LoginActivity extends Activity implements OnClickListener {
 				initilizeMonths();
 
 				if (!isAccessTokenExpired()) {
-					if (accessToken == null || expirationDate == null) {
+					if (mAccessToken == null || mExpirationDate == null) {
 
 						SharedPreferences preferences = PreferenceManager
 								.getDefaultSharedPreferences(this);
 
-						accessToken = preferences.getString("access_token", "");
+						mAccessToken = preferences
+								.getString("access_token", "");
 					}
 
-					if (!accessToken.equalsIgnoreCase("")) {
+					if (!mAccessToken.equalsIgnoreCase("")) {
 
 						Intent i = new Intent(LoginActivity.this,
 								HomeActivity.class);
 						i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
 								| Intent.FLAG_ACTIVITY_NEW_TASK);
-						i.putExtra("access_token", accessToken);
+						i.putExtra("access_token", mAccessToken);
 						startActivity(i);
 					}
 				}
 
 				if (getIntent().getStringExtra("email") != null
 						&& getIntent().getStringExtra("password") != null) {
-					email.setText(getIntent().getStringExtra("email"));
-					password.setText(getIntent().getStringExtra("password"));
+					mEmail.setText(getIntent().getStringExtra("email"));
+					mPassword.setText(getIntent().getStringExtra("password"));
 				}
 			}
 
 		} else {
-			Toast.makeText(LoginActivity.this, "No Internet Connection!",
+			Toast.makeText(LoginActivity.this, NO_INTERNET_CONNECTION_MESSAGE,
 					Toast.LENGTH_LONG).show();
 		}
 	}
 
-	private boolean isNetworkAvailable() {
-		ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo activeNetworkInfo = connectivityManager
-				.getActiveNetworkInfo();
-		return activeNetworkInfo != null && activeNetworkInfo.isConnected();
-	}
-
 	private void initilizeMonths() {
-		map.put("Jan", 1);
-		map.put("Feb", 2);
-		map.put("Mar", 3);
-		map.put("Apr", 4);
-		map.put("May", 5);
-		map.put("Jun", 6);
-		map.put("Jul", 7);
-		map.put("Aug", 8);
-		map.put("Sep", 9);
-		map.put("Oct", 10);
-		map.put("Nob", 11);
-		map.put("DEc", 12);
+		sMonthsValues.put("Jan", 1);
+		sMonthsValues.put("Feb", 2);
+		sMonthsValues.put("Mar", 3);
+		sMonthsValues.put("Apr", 4);
+		sMonthsValues.put("May", 5);
+		sMonthsValues.put("Jun", 6);
+		sMonthsValues.put("Jul", 7);
+		sMonthsValues.put("Aug", 8);
+		sMonthsValues.put("Sep", 9);
+		sMonthsValues.put("Oct", 10);
+		sMonthsValues.put("Nov", 11);
+		sMonthsValues.put("Dec", 12);
 	}
 
 	private boolean isAccessTokenExpired() {
@@ -138,21 +142,22 @@ public class LoginActivity extends Activity implements OnClickListener {
 
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
-		accessToken = preferences.getString("access_token", "");
-		expirationDate = preferences.getString(".expires", "");
-		if (!accessToken.equalsIgnoreCase("")
-				&& !expirationDate.equalsIgnoreCase("")) {
+		mAccessToken = preferences.getString("access_token", "");
+		mExpirationDate = preferences.getString(".expires", "");
+		if (!mAccessToken.equalsIgnoreCase("")
+				&& !mExpirationDate.equalsIgnoreCase("")) {
 			Calendar calendar = Calendar.getInstance();
 
 			int currentDayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
 			int currentMonth = calendar.get(Calendar.MONTH) + 1;
 			int currentYear = calendar.get(Calendar.YEAR);
 
-			String[] expirationDateAsArray = expirationDate.split(" ");
+			String[] expirationDateAsArray = mExpirationDate.split(" ");
 
 			int expirationDayOfMonth = Integer
 					.parseInt(expirationDateAsArray[1].trim());
-			int expirationMonth = map.get(expirationDateAsArray[2].trim());
+			int expirationMonth = sMonthsValues.get(expirationDateAsArray[2]
+					.trim());
 			int expirationYear = Integer.parseInt(expirationDateAsArray[3]
 					.trim());
 
@@ -194,16 +199,17 @@ public class LoginActivity extends Activity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.btn_login) {
-			if (isNetworkAvailable()) {
+			if (mInternetConnection.isNetworkAvailable()) {
 				Intent i = new Intent(LoginActivity.this,
 						LoggingInActivity.class);
 				startActivity(i);
 
-				new Login().execute(String.valueOf(email.getText()),
-						String.valueOf(password.getText()));
+				new Login().execute(String.valueOf(mEmail.getText()),
+						String.valueOf(mPassword.getText()));
 			} else {
-				Toast.makeText(LoginActivity.this, "No Internet Connection!",
-						Toast.LENGTH_LONG).show();
+				Toast.makeText(LoginActivity.this,
+						NO_INTERNET_CONNECTION_MESSAGE, Toast.LENGTH_LONG)
+						.show();
 			}
 		}
 	}
@@ -215,8 +221,7 @@ public class LoginActivity extends Activity implements OnClickListener {
 			String password = params[1];
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
-			HttpPost httppost = new HttpPost(
-					"http://spa2014.bgcoder.com/api/users/login");
+			HttpPost httppost = new HttpPost(LOGIN_URL);
 			httppost.addHeader("Content-Type", "x-www-form-urlencoded");
 
 			List<NameValuePair> pair = new ArrayList<NameValuePair>();
@@ -252,10 +257,8 @@ public class LoginActivity extends Activity implements OnClickListener {
 			try {
 				responseFinal = EntityUtils.toString(entity);
 			} catch (ParseException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 
@@ -264,15 +267,14 @@ public class LoginActivity extends Activity implements OnClickListener {
 
 				accessToken = jsonObj.getString("access_token");
 				expirationDate = jsonObj.getString(".expires");
-
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
-			if (response.getStatusLine().getStatusCode() == 200
+			if (response.getStatusLine().getStatusCode() == STATUS_CODE_OK
 					&& accessToken != null) {
-				Toast.makeText(LoginActivity.this, "Successfully logged in!",
+				Toast.makeText(LoginActivity.this, SUCCESSFULLY_LOGGED_IN_MESSAGE,
 						Toast.LENGTH_SHORT).show();
 
 				SharedPreferences preferences = PreferenceManager
@@ -283,13 +285,14 @@ public class LoginActivity extends Activity implements OnClickListener {
 				editor.apply();
 
 				Intent i = new Intent(LoginActivity.this, HomeActivity.class);
+				i.putExtra("access_token", accessToken);
 				i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
 						| Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(i);
 
-			} else if (response.getStatusLine().getStatusCode() == 400
+			} else if (response.getStatusLine().getStatusCode() == STATUS_CODE_BAD_REQUEST
 					|| accessToken == null) {
-				Toast.makeText(LoginActivity.this, "Wrong email or password!",
+				Toast.makeText(LoginActivity.this, ERROR_MESSAGE,
 						Toast.LENGTH_SHORT).show();
 
 				Intent i = new Intent(getApplicationContext(),

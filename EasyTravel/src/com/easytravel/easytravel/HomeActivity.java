@@ -32,28 +32,27 @@ import android.widget.Toast;
 import com.easytravel.easytravel.adapters.NavDrawerListAdapter;
 import com.easytravel.easytravel.models.NavDrawerItem;
 import com.easytravel.easytravel.progressactivities.LoggingOutActivity;
+import com.easytravel.easytravel.services.SubscribeService;
 
 public class HomeActivity extends Activity {
+
+	private static final String SUCCESSFULLY_LOGGED_OUT_MESSAGE = "Successfully logged out!";
+	private static final String ERROR_LOGGING_OUT_MESSAGE = "An error occurred while logging out!";
+	private static final String LOGOUT_URL = "http://spa2014.bgcoder.com/api/users/logout";
+	private static final int STATUS_CODE_OK = 200;
+	private static final int STATUS_CODE_BAD_REQUEST = 400;
 
 	private DrawerLayout mDrawerLayout;
 	private ListView mDrawerList;
 	private ActionBarDrawerToggle mDrawerToggle;
-
-	// nav drawer title
 	private CharSequence mDrawerTitle;
-
-	// used to store app title
 	private CharSequence mTitle;
-
-	// slide menu items
-	private String[] navMenuTitles;
-	private TypedArray navMenuIcons;
-
-	private ArrayList<NavDrawerItem> navDrawerItems;
-	private NavDrawerListAdapter adapter;
-
-	private String accessToken;
-	private boolean hasAccessToken;
+	private String[] mNavMenuTitles;
+	private TypedArray mNavMenuIcons;
+	private ArrayList<NavDrawerItem> mNavDrawerItems;
+	private NavDrawerListAdapter mAdapter;
+	private String mAccessToken;
+	private boolean mHasAccessToken;
 
 	@SuppressLint("NewApi")
 	@Override
@@ -62,87 +61,87 @@ public class HomeActivity extends Activity {
 		setContentView(R.layout.activity_home);
 
 		if (getIntent().getStringExtra("access_token") != null) {
-			hasAccessToken = true;
-			accessToken = getIntent().getStringExtra("access_token");
-			Log.d("D1", accessToken);
+			mHasAccessToken = true;
+			mAccessToken = getIntent().getStringExtra("access_token");
 		}
+
+		startService(new Intent(this, SubscribeService.class));
 
 		mTitle = mDrawerTitle = getTitle();
 
-		// load slide menu items
-		navMenuTitles = getResources().getStringArray(R.array.nav_drawer_items);
+		mNavMenuTitles = getResources()
+				.getStringArray(R.array.nav_drawer_items);
 
-		// nav drawer icons from resources
-		navMenuIcons = getResources()
-				.obtainTypedArray(R.array.nav_drawer_icons);
+		mNavMenuIcons = getResources().obtainTypedArray(
+				R.array.nav_drawer_icons);
 
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
 		mDrawerList = (ListView) findViewById(R.id.list_slidermenu);
 
-		navDrawerItems = new ArrayList<NavDrawerItem>();
+		mNavDrawerItems = new ArrayList<NavDrawerItem>();
 
-		// adding nav drawer items to array
 		// Home
-		navDrawerItems.add(new NavDrawerItem(navMenuTitles[0], navMenuIcons
+		mNavDrawerItems.add(new NavDrawerItem(mNavMenuTitles[0], mNavMenuIcons
 				.getResourceId(0, -1)));
 		// Create Trip
-		navDrawerItems.add(new NavDrawerItem(navMenuTitles[1], navMenuIcons
+		mNavDrawerItems.add(new NavDrawerItem(mNavMenuTitles[1], mNavMenuIcons
 				.getResourceId(1, -1)));
 		// Find Trips
-		navDrawerItems.add(new NavDrawerItem(navMenuTitles[2], navMenuIcons
+		mNavDrawerItems.add(new NavDrawerItem(mNavMenuTitles[2], mNavMenuIcons
 				.getResourceId(2, -1)));
 		// Filter Trips
-				navDrawerItems.add(new NavDrawerItem(navMenuTitles[3], navMenuIcons
-						.getResourceId(3, -1)));
+		mNavDrawerItems.add(new NavDrawerItem(mNavMenuTitles[3], mNavMenuIcons
+				.getResourceId(3, -1)));
 		// Find People
-		navDrawerItems.add(new NavDrawerItem(navMenuTitles[4], navMenuIcons
+		mNavDrawerItems.add(new NavDrawerItem(mNavMenuTitles[4], mNavMenuIcons
 				.getResourceId(4, -1)));
 		// Subscribed Drivers
-		navDrawerItems.add(new NavDrawerItem(navMenuTitles[5], navMenuIcons
+		mNavDrawerItems.add(new NavDrawerItem(mNavMenuTitles[5], mNavMenuIcons
 				.getResourceId(5, -1)));
 		// Logout
-		navDrawerItems.add(new NavDrawerItem(navMenuTitles[6], navMenuIcons
+		mNavDrawerItems.add(new NavDrawerItem(mNavMenuTitles[6], mNavMenuIcons
 				.getResourceId(6, -1)));
 
-		// Recycle the typed array
-		navMenuIcons.recycle();
+		mNavMenuIcons.recycle();
 
 		mDrawerList.setOnItemClickListener(new SlideMenuClickListener());
 
-		// setting the nav drawer list adapter
-		adapter = new NavDrawerListAdapter(getApplicationContext(),
-				navDrawerItems);
-		mDrawerList.setAdapter(adapter);
+		mAdapter = new NavDrawerListAdapter(getApplicationContext(),
+				mNavDrawerItems);
+		mDrawerList.setAdapter(mAdapter);
 
-		// enabling action bar app icon and behaving it as toggle button
 		getActionBar().setDisplayHomeAsUpEnabled(true);
 		getActionBar().setHomeButtonEnabled(true);
 
 		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
-				R.drawable.ic_drawer, // nav menu toggle icon
-				R.string.app_name, // nav drawer open - description for
-									// accessibility
-				R.string.app_name // nav drawer close - description for
-									// accessibility
-		) {
+				R.drawable.ic_drawer, R.string.app_name, R.string.app_name) {
 			public void onDrawerClosed(View view) {
 				getActionBar().setTitle(mTitle);
-				// calling onPrepareOptionsMenu() to show action bar icons
 				invalidateOptionsMenu();
 			}
 
 			public void onDrawerOpened(View drawerView) {
 				getActionBar().setTitle(mDrawerTitle);
-				// calling onPrepareOptionsMenu() to hide action bar icons
 				invalidateOptionsMenu();
 			}
 		};
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
 
 		if (savedInstanceState == null) {
-			// on first time display view for first nav item
 			displayView(0);
 		}
+
+		if (getIntent().getBooleanExtra("service", false)) {
+			String driverName = getIntent().getStringExtra("driverName");
+			Fragment fragment = new SubscribeDriverDetails(driverName);
+
+			if (fragment != null) {
+				FragmentManager fragmentManager = getFragmentManager();
+				fragmentManager.beginTransaction()
+						.replace(R.id.frame_container, fragment).commit();
+			}
+		}
+
 	}
 
 	@Override
@@ -154,14 +153,11 @@ public class HomeActivity extends Activity {
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog,
 									int which) {
-								if (hasAccessToken) {
-									Intent i = new Intent(
-											getApplicationContext(),
-											LoginActivity.class);
-									i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-									i.putExtra("EXIT", true);
-									startActivity(i);
-								}
+								Intent i = new Intent(getApplicationContext(),
+										LoginActivity.class);
+								i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+								i.putExtra("EXIT", true);
+								startActivity(i);
 							}
 						})
 				.setNegativeButton(android.R.string.no,
@@ -173,15 +169,11 @@ public class HomeActivity extends Activity {
 						}).setIcon(android.R.drawable.ic_dialog_alert).show();
 	}
 
-	/**
-	 * Slide menu item click listener
-	 * */
 	private class SlideMenuClickListener implements
 			ListView.OnItemClickListener {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position,
 				long id) {
-			// display view for selected nav drawer item
 			displayView(position);
 		}
 	}
@@ -194,11 +186,9 @@ public class HomeActivity extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// toggle nav drawer on selecting action bar app icon/title
 		if (mDrawerToggle.onOptionsItemSelected(item)) {
 			return true;
 		}
-		// Handle action bar actions click
 		switch (item.getItemId()) {
 		case R.id.action_settings:
 			return true;
@@ -207,23 +197,15 @@ public class HomeActivity extends Activity {
 		}
 	}
 
-	/* *
-	 * Called when invalidateOptionsMenu() is triggered
-	 */
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
-		// if nav drawer is opened, hide the action items
 		boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
 		menu.findItem(R.id.action_settings).setVisible(!drawerOpen);
 		return super.onPrepareOptionsMenu(menu);
 	}
 
-	/**
-	 * Diplaying fragment view for selected nav drawer list item
-	 * */
 	@SuppressLint("NewApi")
 	private void displayView(int position) {
-		// update the main content by replacing fragments
 		Fragment fragment = null;
 		switch (position) {
 		case 0:
@@ -256,13 +238,11 @@ public class HomeActivity extends Activity {
 			fragmentManager.beginTransaction()
 					.replace(R.id.frame_container, fragment).commit();
 
-			// update selected item and title, then close the drawer
 			mDrawerList.setItemChecked(position, true);
 			mDrawerList.setSelection(position);
-			setTitle(navMenuTitles[position]);
+			setTitle(mNavMenuTitles[position]);
 			mDrawerLayout.closeDrawer(mDrawerList);
 		} else {
-			// error in creating fragment
 			Log.e("MainActivity", "Error in creating fragment");
 		}
 	}
@@ -273,7 +253,7 @@ public class HomeActivity extends Activity {
 		i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(i);
 
-		new Logout().execute(accessToken);
+		new Logout().execute(mAccessToken);
 	}
 
 	private class Logout extends AsyncTask<String, Void, HttpResponse> {
@@ -283,7 +263,7 @@ public class HomeActivity extends Activity {
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
 			HttpPost httppost = new HttpPost(
-					"http://spa2014.bgcoder.com/api/users/logout");
+					LOGOUT_URL);
 			httppost.addHeader("Authorization", "Bearer " + accessTokenLogout);
 
 			try {
@@ -302,9 +282,10 @@ public class HomeActivity extends Activity {
 		protected void onPostExecute(HttpResponse response) {
 			super.onPostExecute(response);
 
-			if (response.getStatusLine().getStatusCode() == 200) {
-				Toast.makeText(HomeActivity.this, "Successfully logged out!",
-						Toast.LENGTH_SHORT).show();
+			if (response.getStatusLine().getStatusCode() == STATUS_CODE_OK) {
+				Toast.makeText(HomeActivity.this,
+						SUCCESSFULLY_LOGGED_OUT_MESSAGE, Toast.LENGTH_SHORT)
+						.show();
 
 				SharedPreferences preferences = PreferenceManager
 						.getDefaultSharedPreferences(HomeActivity.this);
@@ -318,9 +299,8 @@ public class HomeActivity extends Activity {
 				i.putExtra("Logout", true);
 				startActivity(i);
 
-			} else if (response.getStatusLine().getStatusCode() == 400) {
-				Toast.makeText(HomeActivity.this,
-						"An error occurred while logging out!",
+			} else if (response.getStatusLine().getStatusCode() == STATUS_CODE_BAD_REQUEST) {
+				Toast.makeText(HomeActivity.this, ERROR_LOGGING_OUT_MESSAGE,
 						Toast.LENGTH_SHORT).show();
 			}
 		}
@@ -351,11 +331,9 @@ public class HomeActivity extends Activity {
 											.replace(R.id.frame_container,
 													fragment).commit();
 
-									// update selected item and title, then
-									// close the drawer
 									mDrawerList.setItemChecked(0, true);
 									mDrawerList.setSelection(0);
-									setTitle(navMenuTitles[0]);
+									setTitle(mNavMenuTitles[0]);
 									mDrawerLayout.closeDrawer(mDrawerList);
 								}
 							}
@@ -369,22 +347,15 @@ public class HomeActivity extends Activity {
 		getActionBar().setTitle(mTitle);
 	}
 
-	/**
-	 * When using the ActionBarDrawerToggle, you must call it during
-	 * onPostCreate() and onConfigurationChanged()...
-	 */
-
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
 		super.onPostCreate(savedInstanceState);
-		// Sync the toggle state after onRestoreInstanceState has occurred.
 		mDrawerToggle.syncState();
 	}
 
 	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-		// Pass any configuration change to the drawer toggls
 		mDrawerToggle.onConfigurationChanged(newConfig);
 	}
 }

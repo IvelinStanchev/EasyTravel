@@ -69,8 +69,11 @@
 
     <ListView
         android:id="@+id/list_view_filter"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/border_ui"
+        android:dividerHeight="25dp"
+        android:scrollbars="none" >
     </ListView>
 
 </LinearLayout>

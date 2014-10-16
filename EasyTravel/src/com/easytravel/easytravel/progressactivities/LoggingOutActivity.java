@@ -14,7 +14,6 @@ public class LoggingOutActivity extends Activity {
 		setContentView(R.layout.logout_progress);
 	}
 
-	@SuppressLint("ShowToast")
 	@Override
 	public void onBackPressed() {
 	}

@@ -1,7 +1,5 @@
 package com.easytravel.easytravel;
 
-import java.util.concurrent.ExecutionException;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -24,6 +22,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,14 +31,20 @@ import com.easytravel.easytravel.sqlite.DBPref;
 @SuppressLint("NewApi")
 public class SubscribeFragment extends Fragment {
 
-	private String accessToken;
-	private TextView driverName;
-	private TextView driverUpcomingTrips;
-	private TextView driverAllTrips;
-	private Button subscribe;
-	private String nameOfDriver;
-	private String upcomingTripsCount;
-	private String allTripsCount;
+	private static final String DRIVERS_URL = "http://spa2014.bgcoder.com/api/drivers";
+	private static final String ALREADY_SUBSCRIBED_MESSAGE = "You have already subscribed that user!";
+	private static final String SUCCESSFULLY_SUBSCRIBED_MESSAGE = "Successfully subscribed!";
+
+	private String mAccessToken;
+	private TextView mDriverName;
+	private TextView mDriverUpcomingTrips;
+	private TextView mDriverAllTrips;
+	private Button mSubscribe;
+	private String mNameOfDriver;
+	private String mUpcomingTripsCount;
+	private String mAllTripsCount;
+	private ProgressBar mLoadingInfo;
+	private InternetConnection mInternetConnection;
 
 	public SubscribeFragment() {
 	}
@@ -52,68 +57,93 @@ public class SubscribeFragment extends Fragment {
 		View rootView = inflater.inflate(R.layout.fragment_subscribe,
 				container, false);
 
+		mInternetConnection = new InternetConnection(getActivity());
+
+		if (!mInternetConnection.isNetworkAvailable()) {
+			Fragment fragment = new NoInternetConnectionFragment(
+					new SubscribeFragment());
+			FragmentManager fragmentManager = getFragmentManager();
+			fragmentManager.beginTransaction()
+					.replace(R.id.frame_container, fragment).commit();
+		}
+
 		Bundle bundle = this.getArguments();
 		String driverId = bundle.getString("driver_id");
 
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(getActivity());
 
-		accessToken = preferences.getString("access_token", "");
+		mAccessToken = preferences.getString("access_token", "");
 
-		driverName = (TextView) rootView.findViewById(R.id.tv_subscribe_name);
-		driverUpcomingTrips = (TextView) rootView
+		mLoadingInfo = (ProgressBar) rootView.findViewById(R.id.pb_subscribe);
+		mDriverName = (TextView) rootView.findViewById(R.id.tv_subscribe_name);
+		mDriverUpcomingTrips = (TextView) rootView
 				.findViewById(R.id.tv_subscribe_upcomingTrips);
-		driverAllTrips = (TextView) rootView
+		mDriverAllTrips = (TextView) rootView
 				.findViewById(R.id.tv_subscribe_totalTrips);
-		subscribe = (Button) rootView.findViewById(R.id.btn_subscribe);
+		mSubscribe = (Button) rootView.findViewById(R.id.btn_subscribe);
 
-		subscribe.setOnClickListener(new OnClickListener() {
+		mSubscribe.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-				boolean hasUserWithTheSameName = false;
-
-				DBPref pref = new DBPref(getActivity().getApplicationContext());
-				Cursor c = pref.getValues();
-
-				if (c.moveToFirst()) {
-					do {
-						String currentDriverName = c.getString(c
-								.getColumnIndex("driver_name"));
-						if (currentDriverName.equals(driverName.getText()
-								.toString())) {
-							hasUserWithTheSameName = true;
-						}
-					} while (c.moveToNext());
-				}
-				c.close();
-				if (hasUserWithTheSameName) {
-					Toast.makeText(getActivity(),
-							"You have already subscribed that user!",
-							Toast.LENGTH_SHORT).show();
-				} else {
-					pref.addRecord(nameOfDriver, upcomingTripsCount,
-							allTripsCount);
-
-					pref.close();
-
-					Toast.makeText(getActivity(), "Successfully subscribed!",
-							Toast.LENGTH_SHORT).show();
-				}
-
-				pref.close();
-
-				Fragment fragment = new HomeFragment(false);
-
-				if (fragment != null) {
+				if (!mInternetConnection.isNetworkAvailable()) {
+					Fragment fragment = new NoInternetConnectionFragment(
+							new SubscribeFragment());
 					FragmentManager fragmentManager = getFragmentManager();
 					fragmentManager.beginTransaction()
 							.replace(R.id.frame_container, fragment).commit();
+				} else {
+
+					boolean hasUserWithTheSameName = false;
+
+					DBPref pref = new DBPref(getActivity()
+							.getApplicationContext());
+					Cursor c = pref.getValues();
+
+					if (c.moveToFirst()) {
+						do {
+							String currentDriverName = "Driver name: "
+									+ c.getString(c
+											.getColumnIndex("driver_name"));
+							String driverNameToCompare = String
+									.valueOf(mDriverName.getText());
+							if (currentDriverName.equals(driverNameToCompare)) {
+								hasUserWithTheSameName = true;
+							}
+						} while (c.moveToNext());
+					}
+					c.close();
+					if (hasUserWithTheSameName) {
+						Toast.makeText(getActivity(),
+								ALREADY_SUBSCRIBED_MESSAGE, Toast.LENGTH_SHORT)
+								.show();
+					} else {
+						pref.addRecord(mNameOfDriver, mUpcomingTripsCount,
+								mAllTripsCount);
+
+						pref.close();
+
+						Toast.makeText(getActivity(),
+								SUCCESSFULLY_SUBSCRIBED_MESSAGE,
+								Toast.LENGTH_SHORT).show();
+					}
+
+					pref.close();
+
+					Fragment fragment = new HomeFragment(false);
+
+					if (fragment != null) {
+						FragmentManager fragmentManager = getFragmentManager();
+						fragmentManager.beginTransaction()
+								.replace(R.id.frame_container, fragment)
+								.commit();
+					}
 				}
 			}
 		});
 
-		new GetDriverDetails().execute(driverId, accessToken);
+		new GetDriverDetails().execute(driverId, mAccessToken);
 
 		return rootView;
 	}
@@ -127,8 +157,7 @@ public class SubscribeFragment extends Fragment {
 			String accessToken = params[1];
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
-			HttpGet httpget = new HttpGet(
-					"http://spa2014.bgcoder.com/api/drivers/" + driverId);
+			HttpGet httpget = new HttpGet(DRIVERS_URL + "/" + driverId);
 			httpget.setHeader("Authorization", "Bearer " + accessToken);
 
 			try {
@@ -153,19 +182,19 @@ public class SubscribeFragment extends Fragment {
 			JSONObject obj;
 			try {
 				obj = new JSONObject(result);
-				nameOfDriver = obj.getString("name");
-				upcomingTripsCount = String.valueOf(obj
+				mNameOfDriver = obj.getString("name");
+				mUpcomingTripsCount = String.valueOf(obj
 						.getInt("numberOfUpcomingTrips"));
-				allTripsCount = String
-						.valueOf(obj.getInt("numberOfTotalTrips"));
+				mAllTripsCount = String.valueOf(obj
+						.getInt("numberOfTotalTrips"));
 
-				driverName.setText("Driver name: " + nameOfDriver);
-				driverUpcomingTrips.setText("Upcoming trips: "
-						+ upcomingTripsCount);
-				driverAllTrips.setText("All trips: " + allTripsCount);
+				mLoadingInfo.setVisibility(View.INVISIBLE);
+				mDriverName.setText("Driver name: " + mNameOfDriver);
+				mDriverUpcomingTrips.setText("Upcoming trips: "
+						+ mUpcomingTripsCount);
+				mDriverAllTrips.setText("All trips: " + mAllTripsCount);
 
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

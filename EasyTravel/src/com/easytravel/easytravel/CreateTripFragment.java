@@ -34,12 +34,21 @@ import android.widget.Toast;
 @SuppressLint("NewApi")
 public class CreateTripFragment extends Fragment implements OnClickListener {
 
-	private Spinner spinnerFrom;
-	private Spinner spinnerEnd;
-	private EditText etAvailbleSeats;
-	private Button btnMakeTrip;
-	private EditText etGetDate;
-	private String bearer;
+	private static final String AVAILABLE_SEATS_ERROR = "Invalid number of available seats. Must be between 1 and 254";
+	private static final String TRIP_CREATED_SUCCESSFULLY = "Trip created successfully!";
+	private static final int MINIMUM_AVAILVABLE_SEATS = 1;
+	private static final int MAXIMUM_AVAILVABLE_SEATS = 254;
+	private static final int STATUS_CODE_OK = 200;
+	private static final int STATUS_CODE_BAD_REQUEST = 400;
+	private static final String TRIPS_URL = "http://spa2014.bgcoder.com/api/trips";
+
+	private Spinner mSpinnerForm;
+	private Spinner mSpinnerEnd;
+	private EditText mEtAvailableSeats;
+	private Button mBtnMakeTrip;
+	private EditText mEtGetDate;
+	private String mAccessToken;
+	private InternetConnection mInternetConnection;
 
 	public CreateTripFragment() {
 	}
@@ -51,47 +60,60 @@ public class CreateTripFragment extends Fragment implements OnClickListener {
 		View rootView = inflater.inflate(R.layout.fragment_create_trip,
 				container, false);
 
-		spinnerFrom = (Spinner) rootView.findViewById(R.id.spinner_create_town_startTown);
-		spinnerEnd = (Spinner) rootView.findViewById(R.id.spinner_create_town_endTown);
-		/*ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getActivity(), R.array.array_names, android.R.layout.simple_spinner_item);
-		
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		spinner.setAdapter(adapter);*/
-		
-		etAvailbleSeats = (EditText) rootView
-				.findViewById(R.id.et_available_seats);
-		btnMakeTrip = (Button) rootView.findViewById(R.id.btn_make_trip);
-		etGetDate = (EditText) rootView.findViewById(R.id.et_get_date);
+		mInternetConnection = new InternetConnection(getActivity());
 
-		SharedPreferences preferences = PreferenceManager
-				.getDefaultSharedPreferences(getActivity());
+		if (!mInternetConnection.isNetworkAvailable()) {
+			Fragment fragment = new NoInternetConnectionFragment(
+					new CreateTripFragment());
+			FragmentManager fragmentManager = getFragmentManager();
+			fragmentManager.beginTransaction()
+					.replace(R.id.frame_container, fragment).commit();
+		} else {
+			mSpinnerForm = (Spinner) rootView
+					.findViewById(R.id.spinner_create_town_startTown);
+			mSpinnerEnd = (Spinner) rootView
+					.findViewById(R.id.spinner_create_town_endTown);
 
-		bearer = preferences.getString("access_token", "");
+			mEtAvailableSeats = (EditText) rootView
+					.findViewById(R.id.et_available_seats);
+			mBtnMakeTrip = (Button) rootView.findViewById(R.id.btn_make_trip);
+			mEtGetDate = (EditText) rootView.findViewById(R.id.et_get_date);
 
-		btnMakeTrip.setOnClickListener(this);
+			SharedPreferences preferences = PreferenceManager
+					.getDefaultSharedPreferences(getActivity());
+
+			mAccessToken = preferences.getString("access_token", "");
+
+			mBtnMakeTrip.setOnClickListener(this);
+		}
 
 		return rootView;
 	}
 
 	@Override
 	public void onClick(View v) {
-		// TODO Auto-generated method stub
-		CreateTripPost login = new CreateTripPost();
-
-		String fromCity = spinnerFrom.getSelectedItem().toString();
-		String toCity = spinnerEnd.getSelectedItem().toString();
-		Integer availableSeats = Integer.valueOf(String.valueOf(etAvailbleSeats
-				.getText()));
-		String dateOfDeparture = String.valueOf(etGetDate.getText());
-
-		if (availableSeats < 1 || availableSeats > 254) {
-			Toast.makeText(
-					getActivity(),
-					"Invalid number of available seats. Must be between 1 and 254",
-					Toast.LENGTH_SHORT).show();
+		if (!mInternetConnection.isNetworkAvailable()) {
+			Fragment fragment = new NoInternetConnectionFragment(
+					new CreateTripFragment());
+			FragmentManager fragmentManager = getFragmentManager();
+			fragmentManager.beginTransaction()
+					.replace(R.id.frame_container, fragment).commit();
 		} else {
-			login.execute(fromCity, toCity, String.valueOf(availableSeats),
-					dateOfDeparture);
+			CreateTripPost createTrip = new CreateTripPost();
+
+			String fromCity = mSpinnerForm.getSelectedItem().toString();
+			String toCity = mSpinnerEnd.getSelectedItem().toString();
+			Integer availableSeats = Integer.valueOf(String
+					.valueOf(mEtAvailableSeats.getText()));
+			String dateOfDeparture = String.valueOf(mEtGetDate.getText());
+
+			if (availableSeats < MINIMUM_AVAILVABLE_SEATS || availableSeats > MAXIMUM_AVAILVABLE_SEATS) {
+				Toast.makeText(getActivity(), AVAILABLE_SEATS_ERROR,
+						Toast.LENGTH_SHORT).show();
+			} else {
+				createTrip.execute(fromCity, toCity,
+						String.valueOf(availableSeats), dateOfDeparture);
+			}
 		}
 	}
 
@@ -99,19 +121,20 @@ public class CreateTripFragment extends Fragment implements OnClickListener {
 
 		@Override
 		protected void onPostExecute(HttpResponse response) {
-			// TODO Auto-generated method stub
 			super.onPostExecute(response);
 
-			StringBuilder str = new StringBuilder();
+			StringBuilder result = new StringBuilder();
 			try {
-				InputStream is = response.getEntity().getContent();
-				InputStreamReader isr = new InputStreamReader(is);
-				BufferedReader br = new BufferedReader(isr);
+				InputStream inputStream = response.getEntity().getContent();
+				InputStreamReader inputStreamReader = new InputStreamReader(
+						inputStream);
+				BufferedReader bufferedReader = new BufferedReader(
+						inputStreamReader);
 
-				String chunk = null;
+				String currentRow = null;
 
-				while ((chunk = br.readLine()) != null) {
-					str.append(chunk);
+				while ((currentRow = bufferedReader.readLine()) != null) {
+					result.append(currentRow);
 				}
 			} catch (IllegalStateException e) {
 				e.printStackTrace();
@@ -120,47 +143,45 @@ public class CreateTripFragment extends Fragment implements OnClickListener {
 			}
 
 			try {
-				JSONObject jsnobject = new JSONObject(str.toString());
+				JSONObject jsonbject = new JSONObject(result.toString());
 
-				if (response.getStatusLine().getStatusCode() == 200) {
-					Toast.makeText(getActivity(), "Trip created successfully!",
+				if (response.getStatusLine().getStatusCode() == STATUS_CODE_OK) {
+					Toast.makeText(getActivity(), TRIP_CREATED_SUCCESSFULLY,
 							Toast.LENGTH_SHORT).show();
-					
+
 					StringBuilder tripData = new StringBuilder();
 
-					String driverName = jsnobject.getString("driverName");
+					String driverName = jsonbject.getString("driverName");
 					tripData.append("Driver name: " + driverName + "\n\n");
 
-					String fromCity = jsnobject.getString("from");
+					String fromCity = jsonbject.getString("from");
 					tripData.append("From city: " + fromCity + "\n\n");
 
-					String toCity = jsnobject.getString("to");
+					String toCity = jsonbject.getString("to");
 					tripData.append("To city: " + toCity + "\n\n");
 
-					String departureDate = jsnobject.getString("departureDate");
+					String departureDate = jsonbject.getString("departureDate");
 					tripData.append("Departure date: " + departureDate + "\n\n");
 
-					String freeSeats = jsnobject.getString("numberOfFreeSeats");
+					String freeSeats = jsonbject.getString("numberOfFreeSeats");
 					tripData.append("Free seats:  " + freeSeats + "\n\n");
-					
+
 					Fragment fragment = new TripDetailFragment();
 
 					Bundle bundle = new Bundle();
 					bundle.putString("tripInfo", tripData.toString());
 					fragment.setArguments(bundle);
-					
+
 					if (fragment != null) {
 						FragmentManager fragmentManager = getFragmentManager();
-						fragmentManager
-								.beginTransaction()
-								.replace(
-										R.id.frame_container,
-										fragment).commit();
+						fragmentManager.beginTransaction()
+								.replace(R.id.frame_container, fragment)
+								.commit();
 					}
-					
-				} else if (response.getStatusLine().getStatusCode() == 400) {
+
+				} else if (response.getStatusLine().getStatusCode() == STATUS_CODE_BAD_REQUEST) {
 					Toast.makeText(getActivity(),
-							jsnobject.getString("message"), Toast.LENGTH_SHORT)
+							jsonbject.getString("message"), Toast.LENGTH_SHORT)
 							.show();
 				}
 			} catch (JSONException e) {
@@ -188,9 +209,9 @@ public class CreateTripFragment extends Fragment implements OnClickListener {
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
 			HttpPost httppost = new HttpPost(
-					"http://spa2014.bgcoder.com/api/trips");
+					TRIPS_URL);
 
-			httppost.setHeader("Authorization", "Bearer " + bearer);
+			httppost.setHeader("Authorization", "Bearer " + mAccessToken);
 			httppost.setHeader("Content-type", "application/json");
 
 			try {
@@ -198,8 +219,6 @@ public class CreateTripFragment extends Fragment implements OnClickListener {
 			} catch (UnsupportedEncodingException e1) {
 				Log.d("D1", e1.toString());
 			}
-
-			Log.d("D1", "Grum 1 ");
 
 			try {
 				HttpResponse response = httpClient.execute(httppost);

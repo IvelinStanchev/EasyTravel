@@ -1,6 +1,5 @@
 package com.easytravel.easytravel;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -51,31 +50,44 @@ import com.easytravel.easytravel.models.UpcomingTrip;
 public class HomeFragment extends Fragment implements SensorEventListener,
 		LocationListener {
 
-	private ArrayList<UpcomingTrip> upcomingTrips;
-	private ArrayList<UpcomingTrip> upcomingTripsForBundle;
-	private String accessToken;
-	private UpcomingTripsAdapter adapter;
-	boolean loadingMore = false;
-	private int page = 0;
-	private ListView listView;
-	private View footerView;
-	private int doubleClickListener = 0;
-	private LocationManager lm;
-
-	// shaking
-	private SensorManager senSensorManager;
-	private Sensor senAccelerometer;
-	private long lastUpdate;
-	private float last_x, last_y, last_z;
+	private final static int POST_DELAYED = 350;
+	private final static int ITEMS_PER_PAGE = 10;
+	private final static int UPDATE_INTERVAL = 100;
+	private final static int SHAKING_SPEED_BOOST = 10000;
+	private final static String TRIPS_URL = "http://spa2014.bgcoder.com/api/trips";
+	private static final String SUCCESSFULLY_JOINED_TRIP_MESSAGE = "Successfully joined a trip!";
+	private static final String ERROR_JOINING_TRIP_MESSAGE = "Already part of that trip!";
+	private static final int STATUS_CODE_OK = 200;
+	private static final String GOOGLE_GEOCODING_API_KEY = "AIzaSyCj7Dr0HZKRcMnIBuLm2HIWDMXKek1UtTA";
 	private static final int SHAKE_THRESHOLD = 600;
 
-	private SwipeGestureListener gestureListener;
+	private ArrayList<UpcomingTrip> mUpcomingTrips;
+	private ArrayList<UpcomingTrip> mUpcomingTripsForBundle;
+	private String mAccessToken;
+	private UpcomingTripsAdapter mAdapter;
+	boolean mLoadingMore = false;
+	private int mPage = 0;
+	private ListView mListView;
+	private View mFooterView;
+	private int mDoubleClickListener = 0;
+	private LocationManager mLocationManager;
+	private InternetConnection mInternetConnection;
 
-	private boolean hasLocation = false;
-	private String currentTown;
+	// variables for shaking function
+	private SensorManager mSenSensorManager;
+	private Sensor mSenAccelerometer;
+	private long mLastUpdate;
+	private float mLastX, mLastY, mLastZ;
+
+	private SwipeGestureListener mGestureListener;
+	private boolean mHasLocation = false;
+	private String mCurrentTown;
+
+	public HomeFragment() {
+	}
 
 	public HomeFragment(boolean hasLocation) {
-		this.hasLocation = hasLocation;
+		this.mHasLocation = hasLocation;
 	}
 
 	@SuppressLint("InflateParams")
@@ -86,144 +98,110 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 		View rootView = inflater.inflate(R.layout.fragment_home, container,
 				false);
 
-		lm = (LocationManager) getActivity().getSystemService(
+		mInternetConnection = new InternetConnection(getActivity());
+
+		if (!mInternetConnection.isNetworkAvailable()) {
+			Fragment fragment = new NoInternetConnectionFragment(
+					new HomeFragment());
+			FragmentManager fragmentManager = getFragmentManager();
+			fragmentManager.beginTransaction()
+					.replace(R.id.frame_container, fragment).commit();
+		}
+		mLocationManager = (LocationManager) getActivity().getSystemService(
 				Context.LOCATION_SERVICE);
 
-		if (hasLocation) {
-			Location location = lm
-					.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-			if (!(location != null && location.getTime() > Calendar
-					.getInstance().getTimeInMillis() - 2 * 60 * 1000)) {
-				lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0,
-						0, this);
-			}
-
-			new GetLocation().execute(String.valueOf(location.getLatitude()),
-					String.valueOf(location.getLongitude()));
-
+		if (mHasLocation) {
+			getCurrentCoordinates();
 		}
 
-		senSensorManager = (SensorManager) getActivity().getSystemService(
+		mSenSensorManager = (SensorManager) getActivity().getSystemService(
 				Context.SENSOR_SERVICE);
-		senAccelerometer = senSensorManager
+		mSenAccelerometer = mSenSensorManager
 				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		senSensorManager.registerListener(this, senAccelerometer,
+		mSenSensorManager.registerListener(this, mSenAccelerometer,
 				SensorManager.SENSOR_DELAY_NORMAL);
 
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(getActivity());
 
-		accessToken = preferences.getString("access_token", "");
+		mAccessToken = preferences.getString("access_token", "");
 
-		upcomingTrips = new ArrayList<UpcomingTrip>();
-		upcomingTripsForBundle = new ArrayList<UpcomingTrip>();
+		mUpcomingTrips = new ArrayList<UpcomingTrip>();
+		mUpcomingTripsForBundle = new ArrayList<UpcomingTrip>();
 
-		footerView = ((LayoutInflater) getActivity().getSystemService(
+		mFooterView = ((LayoutInflater) getActivity().getSystemService(
 				Context.LAYOUT_INFLATER_SERVICE)).inflate(
 				R.layout.listview_footer, null, false);
 
-		listView = (ListView) rootView.findViewById(R.id.upcoming_trips_list);
+		mListView = (ListView) rootView.findViewById(R.id.upcoming_trips_list);
 
-		listView.addFooterView(footerView);
+		mListView.addFooterView(mFooterView);
 
 		if (savedInstanceState != null) {
 			ArrayList<UpcomingTrip> savedItems = savedInstanceState
 					.getParcelableArrayList("array");
-			upcomingTrips = savedItems;
-			upcomingTripsForBundle = savedItems;
-			page = upcomingTripsForBundle.size() / 10;
+			boolean hasLocationBundle = savedInstanceState
+					.getBoolean("hasLocation");
+
+			mHasLocation = hasLocationBundle;
+
+			if (mHasLocation) {
+				getCurrentCoordinates();
+			}
+
+			mUpcomingTrips = savedItems;
+			mUpcomingTripsForBundle = savedItems;
+			mPage = mUpcomingTripsForBundle.size() / ITEMS_PER_PAGE;
 		}
 
-		adapter = new UpcomingTripsAdapter(getActivity(), upcomingTrips);
-		listView.setAdapter(adapter);
+		mAdapter = new UpcomingTripsAdapter(getActivity(), mUpcomingTrips);
+		mListView.setAdapter(mAdapter);
 
-		gestureListener = new SwipeGestureListener(getActivity(), listView);
-		listView.setOnTouchListener(gestureListener);
+		mGestureListener = new SwipeGestureListener(getActivity(), mListView);
+		mListView.setOnTouchListener(mGestureListener);
 
-		listView.setOnItemLongClickListener(new OnItemLongClickListener() {
+		mListView.setOnItemLongClickListener(new OnItemLongClickListener() {
 
 			@Override
 			public boolean onItemLongClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				final UpcomingTrip item = upcomingTripsForBundle.get(position);
+				if (!mInternetConnection.isNetworkAvailable()) {
+					Fragment fragment = new NoInternetConnectionFragment(
+							new HomeFragment());
+					FragmentManager fragmentManager = getFragmentManager();
+					fragmentManager.beginTransaction()
+							.replace(R.id.frame_container, fragment).commit();
+				} else {
 
-				new AlertDialog.Builder(getActivity())
-						.setTitle("Subscribe to that user ?")
-						.setMessage("Subscribe to that user ?")
-						.setPositiveButton(android.R.string.yes,
-								new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog,
-											int which) {
-
-										Fragment fragment = new SubscribeFragment();
-
-										Bundle bundle = new Bundle();
-										bundle.putString("driver_id",
-												item.getDriverId());
-										fragment.setArguments(bundle);
-
-										if (fragment != null) {
-											FragmentManager fragmentManager = getFragmentManager();
-											fragmentManager
-													.beginTransaction()
-													.replace(
-															R.id.frame_container,
-															fragment).commit();
-										}
-
-									}
-								})
-						.setNegativeButton(android.R.string.no,
-								new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog,
-											int which) {
-										// do nothing
-									}
-								}).setIcon(android.R.drawable.ic_dialog_alert)
-						.show();
-
-				return false;
-			}
-
-		});
-
-		listView.setOnItemClickListener(new OnItemClickListener() {
-
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				doubleClickListener++;
-				Handler handler = new Handler();
-				Runnable r = new Runnable() {
-
-					@Override
-					public void run() {
-						doubleClickListener = 0;
-					}
-				};
-
-				if (doubleClickListener == 1) {
-					// Single click
-					handler.postDelayed(r, 350);
-				} else if (doubleClickListener == 2) {
-					// Double click
-					doubleClickListener = 0;
-					final UpcomingTrip doubleClickedUpcomingTrip = upcomingTripsForBundle
+					final UpcomingTrip item = mUpcomingTripsForBundle
 							.get(position);
 
 					new AlertDialog.Builder(getActivity())
-							.setTitle("Join trip")
-							.setMessage("Join to that trip?")
+							.setTitle("Subscribe to that user ?")
+							.setMessage("Subscribe to that user ?")
 							.setPositiveButton(android.R.string.yes,
 									new DialogInterface.OnClickListener() {
 										public void onClick(
 												DialogInterface dialog,
 												int which) {
 
-											new JoinTrip().execute(
-													doubleClickedUpcomingTrip
-															.getId(),
-													accessToken);
+											Fragment fragment = new SubscribeFragment();
+
+											Bundle bundle = new Bundle();
+											bundle.putString("driver_id",
+													item.getDriverId());
+											fragment.setArguments(bundle);
+
+											if (fragment != null) {
+												FragmentManager fragmentManager = getFragmentManager();
+												fragmentManager
+														.beginTransaction()
+														.replace(
+																R.id.frame_container,
+																fragment)
+														.commit();
+											}
+
 										}
 									})
 							.setNegativeButton(android.R.string.no,
@@ -236,10 +214,75 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 									})
 							.setIcon(android.R.drawable.ic_dialog_alert).show();
 				}
+
+				return false;
+			}
+
+		});
+
+		mListView.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				mDoubleClickListener++;
+				Handler handler = new Handler();
+				Runnable r = new Runnable() {
+
+					@Override
+					public void run() {
+						mDoubleClickListener = 0;
+					}
+				};
+
+				if (mDoubleClickListener == 1) {
+					// Single click
+					handler.postDelayed(r, POST_DELAYED);
+				} else if (mDoubleClickListener == 2) {
+					if (!mInternetConnection.isNetworkAvailable()) {
+						Fragment fragment = new NoInternetConnectionFragment(
+								new FilterTripsFragment());
+						FragmentManager fragmentManager = getFragmentManager();
+						fragmentManager.beginTransaction()
+								.replace(R.id.frame_container, fragment)
+								.commit();
+					} else {
+						// Double click
+						mDoubleClickListener = 0;
+						final UpcomingTrip doubleClickedUpcomingTrip = mUpcomingTripsForBundle
+								.get(position);
+
+						new AlertDialog.Builder(getActivity())
+								.setTitle("Join trip")
+								.setMessage("Join to that trip?")
+								.setPositiveButton(android.R.string.yes,
+										new DialogInterface.OnClickListener() {
+											public void onClick(
+													DialogInterface dialog,
+													int which) {
+
+												new JoinTrip().execute(
+														doubleClickedUpcomingTrip
+																.getId(),
+														mAccessToken);
+											}
+										})
+								.setNegativeButton(android.R.string.no,
+										new DialogInterface.OnClickListener() {
+											public void onClick(
+													DialogInterface dialog,
+													int which) {
+												// do nothing
+											}
+										})
+								.setIcon(android.R.drawable.ic_dialog_alert)
+								.show();
+					}
+				}
 			}
 		});
 
-		listView.setOnScrollListener(new OnScrollListener() {
+		mListView.setOnScrollListener(new OnScrollListener() {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState) {
 			}
@@ -248,23 +291,35 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 			public void onScroll(AbsListView view, int firstVisibleItem,
 					int visibleItemCount, int totalItemCount) {
 				int lastInScreen = firstVisibleItem + visibleItemCount;
-				if ((lastInScreen == totalItemCount) && !(loadingMore)) {
-					page++;
-					
-					if (hasLocation) {
-						if (currentTown != null) {
-							new GetUpcomingTripsAtMyLocation().execute(page);
+				if ((lastInScreen == totalItemCount) && !(mLoadingMore)) {
+					mPage++;
+
+					if (mHasLocation) {
+						if (mCurrentTown != null) {
+							new GetUpcomingTripsAtMyLocation().execute(mPage);
 						}
-						
-					}
-					else{
-						new GetUpcomingTrips().execute(page);
+
+					} else {
+						new GetUpcomingTrips().execute(mPage);
 					}
 				}
 			}
 		});
 
 		return rootView;
+	}
+
+	private void getCurrentCoordinates() {
+		Location location = mLocationManager
+				.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		if (!(location != null && location.getTime() > Calendar.getInstance()
+				.getTimeInMillis() - 2 * 60 * 1000)) {
+			mLocationManager.requestLocationUpdates(
+					LocationManager.NETWORK_PROVIDER, 0, 0, this);
+		}
+
+		new GetLocation().execute(String.valueOf(location.getLatitude()),
+				String.valueOf(location.getLongitude()));
 	}
 
 	private class JoinTrip extends AsyncTask<String, Void, HttpResponse> {
@@ -276,8 +331,7 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 			String accessToken = params[1];
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
-			HttpPut httpput = new HttpPut(
-					"http://spa2014.bgcoder.com/api/trips/" + tripId);
+			HttpPut httpput = new HttpPut(TRIPS_URL + "/" + tripId);
 			httpput.setHeader("Authorization", "Bearer " + accessToken);
 
 			try {
@@ -295,11 +349,11 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 		protected void onPostExecute(HttpResponse response) {
 			super.onPostExecute(response);
 
-			if (response.getStatusLine().getStatusCode() == 200) {
-				Toast.makeText(getActivity(), "Successfully joined a trip!",
+			if (response.getStatusLine().getStatusCode() == STATUS_CODE_OK) {
+				Toast.makeText(getActivity(), SUCCESSFULLY_JOINED_TRIP_MESSAGE,
 						Toast.LENGTH_SHORT).show();
 			} else {
-				Toast.makeText(getActivity(), "Already part of that trip!",
+				Toast.makeText(getActivity(), ERROR_JOINING_TRIP_MESSAGE,
 						Toast.LENGTH_SHORT).show();
 			}
 		}
@@ -308,27 +362,23 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putParcelableArrayList("array", upcomingTripsForBundle);
+		outState.putParcelableArrayList("array", mUpcomingTripsForBundle);
+		outState.putBoolean("hasLocation", mHasLocation);
 	}
 
 	private class GetUpcomingTrips extends AsyncTask<Integer, Void, Void> {
 		@Override
 		protected Void doInBackground(Integer... params) {
 
-			loadingMore = true;
+			mLoadingMore = true;
 
 			int page = params[0];
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
 
-			if (hasLocation) {
-
-			}
-
-			HttpGet httpget = new HttpGet(
-					"http://spa2014.bgcoder.com/api/trips?page=" + page);
+			HttpGet httpget = new HttpGet(TRIPS_URL + "?page=" + page);
 			httpget.setHeader("Content-Type", "application/json");
-			httpget.setHeader("Authorization", "Bearer " + accessToken);
+			httpget.setHeader("Authorization", "Bearer " + mAccessToken);
 
 			try {
 				HttpResponse response = httpClient.execute(httpget);
@@ -339,12 +389,7 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 
 				JSONArray jsonObj = new JSONArray(responseFinal);
 
-				// Getting JSON Array node
-				// JSONArray trips = jsonObj.getJSONArray(responseFinal);
-
-				upcomingTrips = new ArrayList<UpcomingTrip>();
-
-				// String address = c.getString("formatted_address");
+				mUpcomingTrips = new ArrayList<UpcomingTrip>();
 
 				for (int i = 0; i < jsonObj.length(); i++) {
 					JSONObject c = jsonObj.getJSONObject(i);
@@ -356,15 +401,10 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 							c.getString("numberOfFreeSeats"),
 							c.getString("isMine"));
 
-					upcomingTripsForBundle.add(currentUpcomingTrip);
+					mUpcomingTripsForBundle.add(currentUpcomingTrip);
 
-					upcomingTrips.add(currentUpcomingTrip);
+					mUpcomingTrips.add(currentUpcomingTrip);
 				}
-
-				String pesho;
-				pesho = "asdf";
-
-				// return response;
 			} catch (Exception e) {
 				Log.d("D1", e.toString());
 			}
@@ -374,44 +414,43 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 
 		@Override
 		protected void onPostExecute(Void result) {
-			// TODO Auto-generated method stub
 			super.onPostExecute(result);
 
-			if (upcomingTrips != null && upcomingTrips.size() > 0) {
-				for (int i = 0; i < upcomingTrips.size(); i++)
-					adapter.add(upcomingTrips.get(i));
-				loadingMore = false;
-			}
-
-			if (upcomingTrips.size() == 0) {
-				Toast.makeText(getActivity(), "No more items!",
-						Toast.LENGTH_SHORT).show();
-				listView.removeFooterView(footerView);
-			}
-
-			adapter.notifyDataSetChanged();
-
+			loadItemsInAdapter();
 		}
 	}
-	
-	private class GetUpcomingTripsAtMyLocation extends AsyncTask<Integer, Void, Void> {
+
+	private void loadItemsInAdapter() {
+		if (mUpcomingTrips != null && mUpcomingTrips.size() > 0) {
+			for (int i = 0; i < mUpcomingTrips.size(); i++){
+				mAdapter.add(mUpcomingTrips.get(i));
+			}
+			mLoadingMore = false;
+		}
+
+		if (mUpcomingTrips.size() == 0) {
+			Toast.makeText(getActivity(), "No more items!", Toast.LENGTH_SHORT)
+					.show();
+			mListView.removeFooterView(mFooterView);
+		}
+
+		mAdapter.notifyDataSetChanged();
+	}
+
+	private class GetUpcomingTripsAtMyLocation extends
+			AsyncTask<Integer, Void, Void> {
 		@Override
 		protected Void doInBackground(Integer... params) {
+			mLoadingMore = true;
 
-			loadingMore = true;
-
-			page = params[0];
+			mPage = params[0];
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
 
-			if (hasLocation) {
-
-			}
-
-			HttpGet httpget = new HttpGet(
-					"http://spa2014.bgcoder.com/api/trips?page=" + page + "&from=" + currentTown);
+			HttpGet httpget = new HttpGet(TRIPS_URL + "?page=" + mPage
+					+ "&from=" + mCurrentTown);
 			httpget.setHeader("Content-Type", "application/json");
-			httpget.setHeader("Authorization", "Bearer " + accessToken);
+			httpget.setHeader("Authorization", "Bearer " + mAccessToken);
 
 			try {
 				HttpResponse response = httpClient.execute(httpget);
@@ -422,12 +461,7 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 
 				JSONArray jsonObj = new JSONArray(responseFinal);
 
-				// Getting JSON Array node
-				// JSONArray trips = jsonObj.getJSONArray(responseFinal);
-
-				upcomingTrips = new ArrayList<UpcomingTrip>();
-
-				// String address = c.getString("formatted_address");
+				mUpcomingTrips = new ArrayList<UpcomingTrip>();
 
 				for (int i = 0; i < jsonObj.length(); i++) {
 					JSONObject c = jsonObj.getJSONObject(i);
@@ -439,15 +473,10 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 							c.getString("numberOfFreeSeats"),
 							c.getString("isMine"));
 
-					upcomingTripsForBundle.add(currentUpcomingTrip);
+					mUpcomingTripsForBundle.add(currentUpcomingTrip);
 
-					upcomingTrips.add(currentUpcomingTrip);
+					mUpcomingTrips.add(currentUpcomingTrip);
 				}
-
-				String pesho;
-				pesho = "asdf";
-
-				// return response;
 			} catch (Exception e) {
 				Log.d("D1", e.toString());
 			}
@@ -457,23 +486,9 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 
 		@Override
 		protected void onPostExecute(Void result) {
-			// TODO Auto-generated method stub
 			super.onPostExecute(result);
 
-			if (upcomingTrips != null && upcomingTrips.size() > 0) {
-				for (int i = 0; i < upcomingTrips.size(); i++)
-					adapter.add(upcomingTrips.get(i));
-				loadingMore = false;
-			}
-
-			if (upcomingTrips.size() == 0) {
-				Toast.makeText(getActivity(), "No more items!",
-						Toast.LENGTH_SHORT).show();
-				listView.removeFooterView(footerView);
-			}
-
-			adapter.notifyDataSetChanged();
-
+			loadItemsInAdapter();
 		}
 	}
 
@@ -489,13 +504,10 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 					new BasicHttpParams());
 			HttpGet httppost = new HttpGet(
 					"https://maps.googleapis.com/maps/api/geocode/json?latlng="
-							+ latitude + "," + longitude
-							+ "&key=AIzaSyCj7Dr0HZKRcMnIBuLm2HIWDMXKek1UtTA");
-			// Depends on your web service
+							+ latitude + "," + longitude + "&key="
+							+ GOOGLE_GEOCODING_API_KEY);
 			httppost.setHeader("Content-type", "application/json");
 
-			InputStream inputStream = null;
-			String result = null;
 			try {
 				HttpResponse response = httpclient.execute(httppost);
 
@@ -505,7 +517,6 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 
 				JSONObject jsonObj = new JSONObject(responseFinal);
 
-				// Getting JSON Array node
 				JSONArray results = jsonObj.getJSONArray("results");
 
 				JSONObject c = results.getJSONObject(0);
@@ -513,21 +524,11 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 				JSONObject addressComponents = address.getJSONObject(2);
 				String town = addressComponents.getString("long_name");
 
-				String pesho;
-				pesho = "";
-
 				return town;
 			} catch (Exception e) {
-				// Oops
-				// Toast.makeText(MainActivity.this, "afaafa",
-				// Toast.LENGTH_SHORT).show();
-			} finally {
-				try {
-					if (inputStream != null)
-						inputStream.close();
-				} catch (Exception squish) {
-				}
+				Log.d("D1", e.toString());
 			}
+
 			return null;
 		}
 
@@ -536,88 +537,77 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 			// TODO Auto-generated method stub
 			super.onPostExecute(result);
 
-			currentTown = result;
-			upcomingTrips = new ArrayList<UpcomingTrip>();
-			upcomingTripsForBundle = new ArrayList<UpcomingTrip>();
-			new GetUpcomingTripsAtMyLocation().execute(page);
+			mCurrentTown = result;
+			mUpcomingTrips = new ArrayList<UpcomingTrip>();
+			mUpcomingTripsForBundle = new ArrayList<UpcomingTrip>();
+			new GetUpcomingTripsAtMyLocation().execute(mPage);
 		}
 
 	}
 
 	@Override
 	public void onAccuracyChanged(Sensor arg0, int arg1) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onPause() {
 		super.onPause();
-		senSensorManager.unregisterListener(this);
+		mSenSensorManager.unregisterListener(this);
 	}
 
 	@Override
 	public void onResume() {
 		super.onResume();
-		senSensorManager.registerListener(this, senAccelerometer,
+		mSenSensorManager.registerListener(this, mSenAccelerometer,
 				SensorManager.SENSOR_DELAY_NORMAL);
 	}
 
 	@Override
 	public void onSensorChanged(SensorEvent sensorEvent) {
-		Sensor mySensor = sensorEvent.sensor;
+		Sensor sensor = sensorEvent.sensor;
 
-		if (mySensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+		if (sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
 			float x = sensorEvent.values[0];
 			float y = sensorEvent.values[1];
 			float z = sensorEvent.values[2];
 
-			long curTime = System.currentTimeMillis();
-			// only allow one update every 100ms.
-			if ((curTime - lastUpdate) > 100) {
-				long diffTime = (curTime - lastUpdate);
-				lastUpdate = curTime;
+			long currentTime = System.currentTimeMillis();
+			if ((currentTime - mLastUpdate) > UPDATE_INTERVAL) {
+				long timeDifference = (currentTime - mLastUpdate);
+				mLastUpdate = currentTime;
 
-				float speed = Math.abs(x + y + z - last_x - last_y - last_z)
-						/ diffTime * 10000;
+				float speed = Math.abs(x + y + z - mLastX - mLastY - mLastZ)
+						/ timeDifference * SHAKING_SPEED_BOOST;
 
 				if (speed > SHAKE_THRESHOLD) {
-					upcomingTrips = new ArrayList<UpcomingTrip>();
-					upcomingTripsForBundle = new ArrayList<UpcomingTrip>();
-					page = 1;
-					loadingMore = false;
-
-					adapter.clear();
-					adapter.notifyDataSetChanged();
+					mUpcomingTrips = new ArrayList<UpcomingTrip>();
+					mUpcomingTripsForBundle = new ArrayList<UpcomingTrip>();
+					mPage = 0;
+					mLoadingMore = false;
+					mAdapter.clear();
+					mAdapter.notifyDataSetChanged();
 				}
-				last_x = x;
-				last_y = y;
-				last_z = z;
+
+				mLastX = x;
+				mLastY = y;
+				mLastZ = z;
 			}
 		}
 	}
 
 	@Override
 	public void onLocationChanged(Location location) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onProviderDisabled(String provider) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onProviderEnabled(String provider) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
-		// TODO Auto-generated method stub
-
 	}
 }

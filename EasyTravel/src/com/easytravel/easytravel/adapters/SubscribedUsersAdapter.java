@@ -15,45 +15,43 @@ import com.easytravel.easytravel.models.SubscribedUser;
 
 public class SubscribedUsersAdapter extends BaseAdapter {
 
-	private ArrayList<SubscribedUser> subscribedUsers;
-	private LayoutInflater subscribedInf;
+	private ArrayList<SubscribedUser> mSubscribedUsers;
+	private LayoutInflater mSubscribedInf;
 
 	public SubscribedUsersAdapter(Context c, ArrayList<SubscribedUser> theUsers) {
-		subscribedUsers = theUsers;
-		subscribedInf = LayoutInflater.from(c);
+		mSubscribedUsers = theUsers;
+		mSubscribedInf = LayoutInflater.from(c);
 	}
 
 	public void add(SubscribedUser subscribedUser)
 	{
-		subscribedUsers.add(subscribedUser);
+		mSubscribedUsers.add(subscribedUser);
 	    notifyDataSetChanged();
 	}
 	
 	@Override
 	public int getCount() {
-		return subscribedUsers.size();
+		return mSubscribedUsers.size();
 	}
 
 	@Override
 	public Object getItem(int arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public long getItemId(int arg0) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-		LinearLayout subscribedUsersLay = (LinearLayout) subscribedInf.inflate(R.layout.subscribed_users,
+		LinearLayout subscribedUsersLay = (LinearLayout) mSubscribedInf.inflate(R.layout.subscribed_users,
 				parent, false);;
 		TextView driverName = (TextView) subscribedUsersLay.findViewById(R.id.tv_subscribedUsers_driverName);
 		TextView upcomingTripsCount = (TextView) subscribedUsersLay.findViewById(R.id.tv_subscribedUsers_upcomingTripsCount);
 		TextView allTripsCount = (TextView) subscribedUsersLay.findViewById(R.id.tv_subscribedUsers_allTripsCount);
-		SubscribedUser currentSubscribedUser = subscribedUsers.get(position);
+		SubscribedUser currentSubscribedUser = mSubscribedUsers.get(position);
 		
 		driverName.setText("Driver: " + currentSubscribedUser.getDriverName());
 		upcomingTripsCount.setText("Upcoming trips: " + currentSubscribedUser.getUpcomingTripsCount());

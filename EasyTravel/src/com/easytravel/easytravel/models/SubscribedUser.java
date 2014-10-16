@@ -4,47 +4,47 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class SubscribedUser implements Parcelable{
-	private String driverName;
-	private String upcomingTripsCount;
-	private String allTripsCount;
+	private String mDriverName;
+	private String mUpcomingTripsCount;
+	private String mAllTripsCount;
 	
 	public SubscribedUser(String driverName, String upcomingTripsCount, String allTripsCount){
-		this.driverName = driverName;
-		this.upcomingTripsCount = upcomingTripsCount;
-		this.allTripsCount = allTripsCount;
+		this.mDriverName = driverName;
+		this.mUpcomingTripsCount = upcomingTripsCount;
+		this.mAllTripsCount = allTripsCount;
 	}
 
 	public String getDriverName() {
-		return driverName;
+		return mDriverName;
 	}
 
 	public void setDriverName(String driverName) {
-		this.driverName = driverName;
+		this.mDriverName = driverName;
 	}
 
 	public String getUpcomingTripsCount() {
-		return upcomingTripsCount;
+		return mUpcomingTripsCount;
 	}
 
 	public void setUpcomingTripsCount(String upcomingTripsCount) {
-		this.upcomingTripsCount = upcomingTripsCount;
+		this.mUpcomingTripsCount = upcomingTripsCount;
 	}
 
 	public String getAllTripsCount() {
-		return allTripsCount;
+		return mAllTripsCount;
 	}
 
 	public void setAllTripsCount(String allTripsCount) {
-		this.allTripsCount = allTripsCount;
+		this.mAllTripsCount = allTripsCount;
 	}
 	
 	public void UpcomingTrip(Parcel in) {
 		String[] data = new String[3];
 		in.readStringArray(data);
 
-		this.driverName = data[0];
-		this.upcomingTripsCount = data[1];
-		this.allTripsCount = data[2];
+		this.mDriverName = data[0];
+		this.mUpcomingTripsCount = data[1];
+		this.mAllTripsCount = data[2];
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class SubscribedUser implements Parcelable{
 	}
 
 	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeStringArray(new String[] { this.driverName, this.upcomingTripsCount, this.allTripsCount });
+		dest.writeStringArray(new String[] { this.mDriverName, this.mUpcomingTripsCount, this.mAllTripsCount });
 	}
 
 	@SuppressWarnings("rawtypes")

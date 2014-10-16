@@ -39,193 +39,270 @@ import com.easytravel.easytravel.models.UpcomingTrip;
 
 @SuppressLint("NewApi")
 public class FilterTripsFragment extends Fragment {
-	
-	Button filter;
-	Spinner fromTown;
-	Spinner toTown;
-	String fromTownString;
-	String toTownString;
-	private boolean loadingMore = true;
-	private int page = 0;
-	private String accessToken;
-	private int doubleClickListener = 0;
-	
-	private ArrayList<UpcomingTrip> upcomingTrips;
-	private ArrayList<UpcomingTrip> upcomingTripsForBundle;
-	
-	private UpcomingTripsAdapter adapter;
-	private ListView listView;
-	private View footerView;
-	private SwipeGestureListener gestureListener;
-	
-	public FilterTripsFragment(){}
-	
+
+	private static final String END_OF_LIST_MESSAGE = "No more items!";
+	private static final String SUCCESSFULLY_JOINED_TRIP_MESSAGE = "Successfully joined a trip!";
+	private static final String ERROR_JOINING_TRIP_MESSAGE = "Already part of that trip!";
+	private static final int POST_DELAYED = 350;
+	private static final int STATUS_CODE_OK = 200;
+	private static final String TRIPS_URL = "http://spa2014.bgcoder.com/api/trips";
+
+	private Button mFilter;
+	private Spinner mFromTown;
+	private Spinner mToTown;
+	private String mFromTownString;
+	private String mToTownString;
+	private int mPage = 1;
+	private int mDoubleClickListenerCounter = 0;
+	private String mAccessToken;
+	private ArrayList<UpcomingTrip> mUpcomingTrips;
+	private ArrayList<UpcomingTrip> mUpcomingTripsForBundle;
+	private boolean mLoadingMore;
+	private UpcomingTripsAdapter mAdapter;
+	private ListView mListView;
+	private SwipeGestureListener mGestureListener;
+	private InternetConnection mInternetConnection;
+
+	public FilterTripsFragment() {
+	}
+
 	@Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
- 
-        View rootView = inflater.inflate(R.layout.fragment_filter_trips, container, false);
-         
-        filter = (Button) rootView.findViewById(R.id.btn_filter);
-        fromTown = (Spinner) rootView.findViewById(R.id.spinner_startTown);
-        toTown = (Spinner) rootView.findViewById(R.id.spinner_endTown);
-        
-        SharedPreferences preferences = PreferenceManager
-				.getDefaultSharedPreferences(getActivity());
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
 
-		accessToken = preferences.getString("access_token", "");
-		
-		upcomingTrips = new ArrayList<UpcomingTrip>();
-		upcomingTripsForBundle = new ArrayList<UpcomingTrip>();
-        
-		listView = (ListView) rootView.findViewById(R.id.list_view_filter);
-		
-		adapter = new UpcomingTripsAdapter(getActivity(), upcomingTrips);
-		listView.setAdapter(adapter);
+		View rootView = inflater.inflate(R.layout.fragment_filter_trips,
+				container, false);
 
-		gestureListener = new SwipeGestureListener(getActivity(), listView);
-		listView.setOnTouchListener(gestureListener);
-		
-		listView.setOnItemLongClickListener(new OnItemLongClickListener() {
+		mInternetConnection = new InternetConnection(getActivity());
 
-			@Override
-			public boolean onItemLongClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				final UpcomingTrip item = upcomingTripsForBundle.get(position);
+		if (!mInternetConnection.isNetworkAvailable()) {
+			Fragment fragment = new NoInternetConnectionFragment(
+					new FilterTripsFragment());
+			FragmentManager fragmentManager = getFragmentManager();
+			fragmentManager.beginTransaction()
+					.replace(R.id.frame_container, fragment).commit();
+		} else {
+			mFilter = (Button) rootView.findViewById(R.id.btn_filter);
+			mFromTown = (Spinner) rootView.findViewById(R.id.spinner_startTown);
+			mToTown = (Spinner) rootView.findViewById(R.id.spinner_endTown);
 
-				new AlertDialog.Builder(getActivity())
-						.setTitle("Subscribe to that user ?")
-						.setMessage("Subscribe to that user ?")
-						.setPositiveButton(android.R.string.yes,
-								new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog,
-											int which) {
+			SharedPreferences preferences = PreferenceManager
+					.getDefaultSharedPreferences(getActivity());
 
-										Fragment fragment = new SubscribeFragment();
+			mAccessToken = preferences.getString("access_token", "");
 
-										Bundle bundle = new Bundle();
-										bundle.putString("driver_id",
-												item.getDriverId());
-										fragment.setArguments(bundle);
+			mUpcomingTrips = new ArrayList<UpcomingTrip>();
+			mUpcomingTripsForBundle = new ArrayList<UpcomingTrip>();
 
-										if (fragment != null) {
-											FragmentManager fragmentManager = getFragmentManager();
-											fragmentManager
-													.beginTransaction()
-													.replace(
-															R.id.frame_container,
-															fragment).commit();
-										}
+			mListView = (ListView) rootView.findViewById(R.id.list_view_filter);
 
-									}
-								})
-						.setNegativeButton(android.R.string.no,
-								new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog,
-											int which) {
-										// do nothing
-									}
-								}).setIcon(android.R.drawable.ic_dialog_alert)
-						.show();
-
-				return false;
+			if (savedInstanceState != null) {
+				ArrayList<UpcomingTrip> savedItems = savedInstanceState
+						.getParcelableArrayList("array");
+				mUpcomingTrips = savedItems;
+				mUpcomingTripsForBundle = savedItems;
 			}
 
-		});
+			mAdapter = new UpcomingTripsAdapter(getActivity(), mUpcomingTrips);
+			mListView.setAdapter(mAdapter);
 
-		listView.setOnItemClickListener(new OnItemClickListener() {
+			mGestureListener = new SwipeGestureListener(getActivity(),
+					mListView);
+			mListView.setOnTouchListener(mGestureListener);
 
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				doubleClickListener++;
-				Handler handler = new Handler();
-				Runnable r = new Runnable() {
+			mListView.setOnItemLongClickListener(new OnItemLongClickListener() {
 
-					@Override
-					public void run() {
-						doubleClickListener = 0;
+				@Override
+				public boolean onItemLongClick(AdapterView<?> parent,
+						View view, int position, long id) {
+					if (!mInternetConnection.isNetworkAvailable()) {
+						Fragment fragment = new NoInternetConnectionFragment(
+								new FilterTripsFragment());
+						FragmentManager fragmentManager = getFragmentManager();
+						fragmentManager.beginTransaction()
+								.replace(R.id.frame_container, fragment)
+								.commit();
+					} else {
+
+						final UpcomingTrip item = mUpcomingTripsForBundle
+								.get(position);
+
+						new AlertDialog.Builder(getActivity())
+								.setTitle("Subscribe to that user ?")
+								.setMessage("Subscribe to that user ?")
+								.setPositiveButton(android.R.string.yes,
+										new DialogInterface.OnClickListener() {
+											public void onClick(
+													DialogInterface dialog,
+													int which) {
+
+												Fragment fragment = new SubscribeFragment();
+
+												Bundle bundle = new Bundle();
+												bundle.putString("driver_id",
+														item.getDriverId());
+												fragment.setArguments(bundle);
+
+												if (fragment != null) {
+													FragmentManager fragmentManager = getFragmentManager();
+													fragmentManager
+															.beginTransaction()
+															.replace(
+																	R.id.frame_container,
+																	fragment)
+															.commit();
+												}
+
+											}
+										})
+								.setNegativeButton(android.R.string.no,
+										new DialogInterface.OnClickListener() {
+											public void onClick(
+													DialogInterface dialog,
+													int which) {
+												// do nothing
+											}
+										})
+								.setIcon(android.R.drawable.ic_dialog_alert)
+								.show();
 					}
-				};
 
-				if (doubleClickListener == 1) {
-					// Single click
-					handler.postDelayed(r, 350);
-				} else if (doubleClickListener == 2) {
-					// Double click
-					doubleClickListener = 0;
-					final UpcomingTrip doubleClickedUpcomingTrip = upcomingTripsForBundle
-							.get(position);
-
-					new AlertDialog.Builder(getActivity())
-							.setTitle("Join trip")
-							.setMessage("Join to that trip?")
-							.setPositiveButton(android.R.string.yes,
-									new DialogInterface.OnClickListener() {
-										public void onClick(
-												DialogInterface dialog,
-												int which) {
-
-											new JoinTrip().execute(
-													doubleClickedUpcomingTrip
-															.getId(),
-													accessToken);
-										}
-									})
-							.setNegativeButton(android.R.string.no,
-									new DialogInterface.OnClickListener() {
-										public void onClick(
-												DialogInterface dialog,
-												int which) {
-											// do nothing
-										}
-									})
-							.setIcon(android.R.drawable.ic_dialog_alert).show();
+					return false;
 				}
-			}
-		});
-		
-        filter.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				fromTownString = fromTown.getSelectedItem().toString();
-				toTownString = toTown.getSelectedItem().toString();
-				
-				adapter.clear();
-				
-				loadingMore = false;
-				
-				Toast.makeText(getActivity(), "Loading trips...", Toast.LENGTH_LONG).show();
-				
-				
-				upcomingTrips = new ArrayList<UpcomingTrip>();
-				upcomingTripsForBundle = new ArrayList<UpcomingTrip>();
-				
-				new GetUpcomingTripsFromTownToTown().execute(page);
-			}
-		});
-        
-        return rootView;
-    }
-	
-	private class GetUpcomingTripsFromTownToTown extends AsyncTask<Integer, Void, Void> {
+			});
+
+			mListView.setOnItemClickListener(new OnItemClickListener() {
+
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view,
+						int position, long id) {
+					mDoubleClickListenerCounter++;
+					Handler handler = new Handler();
+					Runnable r = new Runnable() {
+
+						@Override
+						public void run() {
+							mDoubleClickListenerCounter = 0;
+						}
+					};
+
+					if (mDoubleClickListenerCounter == 1) {
+						// Single click
+						handler.postDelayed(r, POST_DELAYED);
+					} else if (mDoubleClickListenerCounter == 2) {
+						if (!mInternetConnection.isNetworkAvailable()) {
+							Fragment fragment = new NoInternetConnectionFragment(
+									new FilterTripsFragment());
+							FragmentManager fragmentManager = getFragmentManager();
+							fragmentManager.beginTransaction()
+									.replace(R.id.frame_container, fragment)
+									.commit();
+						} else {
+							if (!mInternetConnection.isNetworkAvailable()) {
+								Fragment fragment = new NoInternetConnectionFragment(
+										new FilterTripsFragment());
+								FragmentManager fragmentManager = getFragmentManager();
+								fragmentManager
+										.beginTransaction()
+										.replace(R.id.frame_container, fragment)
+										.commit();
+							} else {
+								// Double click
+								mDoubleClickListenerCounter = 0;
+								final UpcomingTrip doubleClickedUpcomingTrip = mUpcomingTripsForBundle
+										.get(position);
+
+								new AlertDialog.Builder(getActivity())
+										.setTitle("Join trip")
+										.setMessage("Join to that trip?")
+										.setPositiveButton(
+												android.R.string.yes,
+												new DialogInterface.OnClickListener() {
+													public void onClick(
+															DialogInterface dialog,
+															int which) {
+
+														new JoinTrip().execute(
+																doubleClickedUpcomingTrip
+																		.getId(),
+																mAccessToken);
+													}
+												})
+										.setNegativeButton(
+												android.R.string.no,
+												new DialogInterface.OnClickListener() {
+													public void onClick(
+															DialogInterface dialog,
+															int which) {
+														// do nothing
+													}
+												})
+										.setIcon(
+												android.R.drawable.ic_dialog_alert)
+										.show();
+							}
+						}
+					}
+				}
+			});
+
+			mFilter.setOnClickListener(new OnClickListener() {
+
+				@Override
+				public void onClick(View v) {
+					if (!mInternetConnection.isNetworkAvailable()) {
+						Fragment fragment = new NoInternetConnectionFragment(
+								new FilterTripsFragment());
+						FragmentManager fragmentManager = getFragmentManager();
+						fragmentManager.beginTransaction()
+								.replace(R.id.frame_container, fragment)
+								.commit();
+					} else {
+
+						mFromTownString = mFromTown.getSelectedItem()
+								.toString();
+						mToTownString = mToTown.getSelectedItem().toString();
+
+						mAdapter.clear();
+
+						mLoadingMore = false;
+
+						Toast.makeText(getActivity(), "Loading trips...",
+								Toast.LENGTH_LONG).show();
+
+						mUpcomingTrips = new ArrayList<UpcomingTrip>();
+						mUpcomingTripsForBundle = new ArrayList<UpcomingTrip>();
+
+						new GetUpcomingTripsFromTownToTown().execute(mPage);
+					}
+				}
+			});
+		}
+
+		return rootView;
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		outState.putParcelableArrayList("array", mUpcomingTripsForBundle);
+	}
+
+	private class GetUpcomingTripsFromTownToTown extends
+			AsyncTask<Integer, Void, Void> {
 		@Override
 		protected Void doInBackground(Integer... params) {
-
-			loadingMore = true;
-			
-			//Toast.makeText(getActivity(), "Loading...", Toast.LENGTH_SHORT).show();
-			Log.d("D1", "Loading...");
-			
-			page = params[0];
+			mLoadingMore = true;
+			mPage = params[0];
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
 
 			HttpGet httpget = new HttpGet(
-					"http://spa2014.bgcoder.com/api/trips?page=" + page + "&from=" + fromTownString + "&to=" + toTownString);
+					TRIPS_URL + "?page=" + mPage
+							+ "&from=" + mFromTownString + "&to="
+							+ mToTownString);
 			httpget.setHeader("Content-Type", "application/json");
-			httpget.setHeader("Authorization", "Bearer " + accessToken);
+			httpget.setHeader("Authorization", "Bearer " + mAccessToken);
 
 			try {
 				HttpResponse response = httpClient.execute(httpget);
@@ -235,13 +312,6 @@ public class FilterTripsFragment extends Fragment {
 				String responseFinal = EntityUtils.toString(entity);
 
 				JSONArray jsonObj = new JSONArray(responseFinal);
-
-				// Getting JSON Array node
-				// JSONArray trips = jsonObj.getJSONArray(responseFinal);
-
-				//upcomingTrips = new ArrayList<UpcomingTrip>();
-
-				// String address = c.getString("formatted_address");
 
 				for (int i = 0; i < jsonObj.length(); i++) {
 					JSONObject c = jsonObj.getJSONObject(i);
@@ -253,15 +323,10 @@ public class FilterTripsFragment extends Fragment {
 							c.getString("numberOfFreeSeats"),
 							c.getString("isMine"));
 
-					upcomingTripsForBundle.add(currentUpcomingTrip);
+					mUpcomingTripsForBundle.add(currentUpcomingTrip);
 
-					upcomingTrips.add(currentUpcomingTrip);
+					mUpcomingTrips.add(currentUpcomingTrip);
 				}
-
-				String pesho;
-				pesho = "asdf";
-
-				// return response;
 			} catch (Exception e) {
 				Log.d("D1", e.toString());
 			}
@@ -271,29 +336,25 @@ public class FilterTripsFragment extends Fragment {
 
 		@Override
 		protected void onPostExecute(Void result) {
-			// TODO Auto-generated method stub
 			super.onPostExecute(result);
 
-			if (upcomingTrips != null && upcomingTrips.size() > 0) {
-				for (int i = 0; i < upcomingTrips.size(); i++)
-					adapter.add(upcomingTrips.get(i));
-				loadingMore = false;
+			if (mUpcomingTrips != null && mUpcomingTrips.size() > 0) {
+				for (int i = 0; i < mUpcomingTrips.size(); i++){
+					mAdapter.add(mUpcomingTrips.get(i));
+				}
+				mLoadingMore = false;
 			}
 
-			if (upcomingTrips.size() == 0) {
-				Toast.makeText(getActivity(), "No more items!",
+			if (mUpcomingTrips.size() == 0) {
+				Toast.makeText(getActivity(), END_OF_LIST_MESSAGE,
 						Toast.LENGTH_SHORT).show();
-				
-			}
-			
-			String pesho;
-			pesho = "asdf";
-			
-			adapter.notifyDataSetChanged();
 
+			}
+
+			mAdapter.notifyDataSetChanged();
 		}
 	}
-	
+
 	private class JoinTrip extends AsyncTask<String, Void, HttpResponse> {
 
 		@Override
@@ -304,7 +365,7 @@ public class FilterTripsFragment extends Fragment {
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
 			HttpPut httpput = new HttpPut(
-					"http://spa2014.bgcoder.com/api/trips/" + tripId);
+					TRIPS_URL + tripId);
 			httpput.setHeader("Authorization", "Bearer " + accessToken);
 
 			try {
@@ -322,11 +383,11 @@ public class FilterTripsFragment extends Fragment {
 		protected void onPostExecute(HttpResponse response) {
 			super.onPostExecute(response);
 
-			if (response.getStatusLine().getStatusCode() == 200) {
-				Toast.makeText(getActivity(), "Successfully joined a trip!",
+			if (response.getStatusLine().getStatusCode() == STATUS_CODE_OK) {
+				Toast.makeText(getActivity(), SUCCESSFULLY_JOINED_TRIP_MESSAGE,
 						Toast.LENGTH_SHORT).show();
 			} else {
-				Toast.makeText(getActivity(), "Already part of that trip!",
+				Toast.makeText(getActivity(), ERROR_JOINING_TRIP_MESSAGE,
 						Toast.LENGTH_SHORT).show();
 			}
 		}

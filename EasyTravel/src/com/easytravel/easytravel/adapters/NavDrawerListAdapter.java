@@ -16,22 +16,22 @@ import android.widget.TextView;
 import com.easytravel.easytravel.models.NavDrawerItem;
 
 public class NavDrawerListAdapter extends BaseAdapter{
-	private Context context;
-	private ArrayList<NavDrawerItem> navDrawerItems;
+	private Context mContext;
+	private ArrayList<NavDrawerItem> mNavDrawerItems;
 	
 	public NavDrawerListAdapter(Context context, ArrayList<NavDrawerItem> navDrawerItems){
-		this.context = context;
-		this.navDrawerItems = navDrawerItems;
+		this.mContext = context;
+		this.mNavDrawerItems = navDrawerItems;
 	}
 
 	@Override
 	public int getCount() {
-		return navDrawerItems.size();
+		return mNavDrawerItems.size();
 	}
 
 	@Override
 	public Object getItem(int position) {		
-		return navDrawerItems.get(position);
+		return mNavDrawerItems.get(position);
 	}
 
 	@Override
@@ -43,7 +43,7 @@ public class NavDrawerListAdapter extends BaseAdapter{
 	public View getView(int position, View convertView, ViewGroup parent) {
 		if (convertView == null) {
             LayoutInflater mInflater = (LayoutInflater)
-                    context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+            		mContext.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
             convertView = mInflater.inflate(R.layout.drawer_list_item, null);
         }
          
@@ -51,15 +51,12 @@ public class NavDrawerListAdapter extends BaseAdapter{
         TextView txtTitle = (TextView) convertView.findViewById(R.id.title);
         TextView txtCount = (TextView) convertView.findViewById(R.id.counter);
          
-        imgIcon.setImageResource(navDrawerItems.get(position).getIcon());        
-        txtTitle.setText(navDrawerItems.get(position).getTitle());
+        imgIcon.setImageResource(mNavDrawerItems.get(position).getIcon());        
+        txtTitle.setText(mNavDrawerItems.get(position).getTitle());
         
-        // displaying count
-        // check whether it set visible or not
-        if(navDrawerItems.get(position).getCounterVisibility()){
-        	txtCount.setText(navDrawerItems.get(position).getCount());
+        if(mNavDrawerItems.get(position).getCounterVisibility()){
+        	txtCount.setText(mNavDrawerItems.get(position).getCount());
         }else{
-        	// hide the counter view
         	txtCount.setVisibility(View.GONE);
         }
         

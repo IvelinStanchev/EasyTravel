@@ -22,14 +22,14 @@ import com.easytravel.easytravel.sqlite.DBPref;
 @SuppressLint("NewApi")
 public class SubscribedUsersFragment extends Fragment {
 
-	private TextView driverName;
-	private TextView driverUpcomingTrips;
-	private TextView driverAllTrips;
-	private ArrayList<SubscribedUser> subscribedUsers;
-	private ArrayList<SubscribedUser> subscribedUsersForBundle;
+	private static final String NO_SUBSCRIBED_DRIVERS_MESSAGE = "No subscribed drivers!";
+	
+	private ArrayList<SubscribedUser> mSubscribedUsers;
+	private ArrayList<SubscribedUser> mSubscribedUsersForBundle;
 	private SubscribedUsersAdapter adapter;
 	private ListView listView;
-	
+	private InternetConnection mInternetConnection;
+
 	public SubscribedUsersFragment() {
 	}
 
@@ -40,67 +40,89 @@ public class SubscribedUsersFragment extends Fragment {
 
 		View rootView = inflater.inflate(R.layout.fragment_subscribed_users,
 				container, false);
-		
-		subscribedUsers = new ArrayList<SubscribedUser>();
-		subscribedUsersForBundle = new ArrayList<SubscribedUser>();
-		
-		listView = (ListView) rootView.findViewById(R.id.subscribed_users_list);
-		
-		if (savedInstanceState != null) {
-			ArrayList<SubscribedUser> savedItems = savedInstanceState.getParcelableArrayList("array");
-			subscribedUsers = savedItems;
-			subscribedUsersForBundle = savedItems;
+
+		mInternetConnection = new InternetConnection(getActivity());
+
+		if (!mInternetConnection.isNetworkAvailable()) {
+			Fragment fragment = new NoInternetConnectionFragment(
+					new SubscribedUsersFragment());
+			FragmentManager fragmentManager = getFragmentManager();
+			fragmentManager.beginTransaction()
+					.replace(R.id.frame_container, fragment).commit();
+		} else {
+			mSubscribedUsers = new ArrayList<SubscribedUser>();
+			mSubscribedUsersForBundle = new ArrayList<SubscribedUser>();
+
+			listView = (ListView) rootView
+					.findViewById(R.id.subscribed_users_list);
+
+			if (savedInstanceState != null) {
+				ArrayList<SubscribedUser> savedItems = savedInstanceState
+						.getParcelableArrayList("array");
+				mSubscribedUsers = savedItems;
+				mSubscribedUsersForBundle = savedItems;
+			}
+
+			adapter = new SubscribedUsersAdapter(getActivity(), mSubscribedUsers);
+			listView.setAdapter(adapter);
+
+			getAllSubscribedUsers();
 		}
-		
-		adapter = new SubscribedUsersAdapter(getActivity(), subscribedUsers);
-		listView.setAdapter(adapter);
-		
-		getAllSubscribedUsers();
-		
+
 		return rootView;
 	}
-	
-	public void getAllSubscribedUsers(){
-		subscribedUsers = new ArrayList<SubscribedUser>();
+
+	public void getAllSubscribedUsers() {
+		mSubscribedUsers = new ArrayList<SubscribedUser>();
 		DBPref pref = new DBPref(getActivity().getApplicationContext());
 		Cursor c = pref.getValues();
 
 		if (c.moveToFirst()) {
 			do {
-				String currentDriverName = c.getString(c.getColumnIndex("driver_name"));
-				String currentDriverUpcomingTripsCount = c.getString(c.getColumnIndex("driver_upcoming_trips"));
-				String currentDriverAllTripsCount = c.getString(c.getColumnIndex("driver_all_trips"));
-				
-				subscribedUsers.add(new SubscribedUser(currentDriverName, 
-						currentDriverUpcomingTripsCount, currentDriverAllTripsCount));
+				String currentDriverName = c.getString(c
+						.getColumnIndex("driver_name"));
+				String currentDriverUpcomingTripsCount = c.getString(c
+						.getColumnIndex("driver_upcoming_trips"));
+				String currentDriverAllTripsCount = c.getString(c
+						.getColumnIndex("driver_all_trips"));
+
+				mSubscribedUsers.add(new SubscribedUser(currentDriverName,
+						currentDriverUpcomingTripsCount,
+						currentDriverAllTripsCount));
 			} while (c.moveToNext());
 		}
 		c.close();
 		pref.close();
-		
-		if (subscribedUsers != null && subscribedUsers.size() > 0) {
-			for (int i = 0; i < subscribedUsers.size(); i++)
-				adapter.add(subscribedUsers.get(i));
-		}
-		
-		if (subscribedUsers.size() == 0) {
+
+		loadListItems();
+
+		if (mSubscribedUsers.size() == 0) {
 			Fragment fragment = new HomeFragment(false);
-			
+
 			if (fragment != null) {
 				FragmentManager fragmentManager = getFragmentManager();
 				fragmentManager.beginTransaction()
 						.replace(R.id.frame_container, fragment).commit();
 			}
-			
-			Toast.makeText(getActivity(), "No subscribed drivers!", Toast.LENGTH_SHORT).show();
+
+			Toast.makeText(getActivity(), NO_SUBSCRIBED_DRIVERS_MESSAGE,
+					Toast.LENGTH_SHORT).show();
 		}
-		
+
 		adapter.notifyDataSetChanged();
+	}
+
+	private void loadListItems(){
+		if (mSubscribedUsers != null && mSubscribedUsers.size() > 0) {
+			for (int i = 0; i < mSubscribedUsers.size(); i++){
+				adapter.add(mSubscribedUsers.get(i));
+			}
+		}
 	}
 	
 	@Override
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		outState.putParcelableArrayList("array", subscribedUsersForBundle);
+		outState.putParcelableArrayList("array", mSubscribedUsersForBundle);
 	}
 }

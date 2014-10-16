@@ -6,8 +6,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class DBHelper extends SQLiteOpenHelper{
-	static final String DB_NAME = "mydb";
-	static final int DB_CURRENT_VERSION = 1;
+	private static final String DB_NAME = "mydb";
+	private static final int DB_CURRENT_VERSION = 1;
 	protected SQLiteDatabase db;
 	
 	public DBHelper(Context context){
@@ -25,8 +25,6 @@ public class DBHelper extends SQLiteOpenHelper{
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		// TODO Auto-generated method stub
-		
 	}
 	
 	public void open() throws SQLException {
