@@ -1,0 +1,54 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="fill_parent"
+  android:layout_height="wrap_content"
+  android:orientation="vertical"
+  android:paddingLeft="15dp" >
+  
+    <TextView
+        android:id="@+id/tv_upcomingTrip_driverName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#3366FF"
+  		android:textSize="23sp"
+  		android:typeface="monospace"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/tv_upcomingTrip_from"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#3366FF"
+  		android:textSize="23sp"
+  		android:typeface="monospace"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/tv_upcomingTrip_to"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#3366FF"
+  		android:textSize="23sp"
+  		android:typeface="monospace"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/tv_upcomingTrip_departureDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#3366FF"
+  		android:textSize="23sp"
+  		android:typeface="monospace"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/tv_upcomingTrip_numberOfFreeSeats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#3366FF"
+  		android:textSize="23sp"
+        android:text="TextView"
+        android:typeface="monospace"
+        android:paddingBottom="10dp" />
+
+</LinearLayout>
