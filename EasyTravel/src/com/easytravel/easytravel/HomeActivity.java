@@ -8,9 +8,12 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -262,8 +265,7 @@ public class HomeActivity extends Activity {
 			String accessTokenLogout = params[0];
 
 			DefaultHttpClient httpClient = new DefaultHttpClient();
-			HttpPost httppost = new HttpPost(
-					LOGOUT_URL);
+			HttpPost httppost = new HttpPost(LOGOUT_URL);
 			httppost.addHeader("Authorization", "Bearer " + accessTokenLogout);
 
 			try {

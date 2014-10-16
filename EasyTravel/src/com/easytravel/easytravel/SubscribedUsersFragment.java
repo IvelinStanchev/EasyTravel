@@ -14,9 +14,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.easytravel.easytravel.adapters.SubscribedUsersAdapter;
+import com.easytravel.easytravel.adapters.UsersAdapter;
 import com.easytravel.easytravel.adapters.UpcomingTripsAdapter;
-import com.easytravel.easytravel.models.SubscribedUser;
+import com.easytravel.easytravel.models.User;
 import com.easytravel.easytravel.sqlite.DBPref;
 
 @SuppressLint("NewApi")
@@ -24,10 +24,10 @@ public class SubscribedUsersFragment extends Fragment {
 
 	private static final String NO_SUBSCRIBED_DRIVERS_MESSAGE = "No subscribed drivers!";
 	
-	private ArrayList<SubscribedUser> mSubscribedUsers;
-	private ArrayList<SubscribedUser> mSubscribedUsersForBundle;
-	private SubscribedUsersAdapter adapter;
-	private ListView listView;
+	private ArrayList<User> mSubscribedUsers;
+	private ArrayList<User> mSubscribedUsersForBundle;
+	private UsersAdapter mAdapter;
+	private ListView mListView;
 	private InternetConnection mInternetConnection;
 
 	public SubscribedUsersFragment() {
@@ -50,21 +50,21 @@ public class SubscribedUsersFragment extends Fragment {
 			fragmentManager.beginTransaction()
 					.replace(R.id.frame_container, fragment).commit();
 		} else {
-			mSubscribedUsers = new ArrayList<SubscribedUser>();
-			mSubscribedUsersForBundle = new ArrayList<SubscribedUser>();
+			mSubscribedUsers = new ArrayList<User>();
+			mSubscribedUsersForBundle = new ArrayList<User>();
 
-			listView = (ListView) rootView
+			mListView = (ListView) rootView
 					.findViewById(R.id.subscribed_users_list);
 
 			if (savedInstanceState != null) {
-				ArrayList<SubscribedUser> savedItems = savedInstanceState
+				ArrayList<User> savedItems = savedInstanceState
 						.getParcelableArrayList("array");
 				mSubscribedUsers = savedItems;
 				mSubscribedUsersForBundle = savedItems;
 			}
 
-			adapter = new SubscribedUsersAdapter(getActivity(), mSubscribedUsers);
-			listView.setAdapter(adapter);
+			mAdapter = new UsersAdapter(getActivity(), mSubscribedUsers);
+			mListView.setAdapter(mAdapter);
 
 			getAllSubscribedUsers();
 		}
@@ -73,7 +73,7 @@ public class SubscribedUsersFragment extends Fragment {
 	}
 
 	public void getAllSubscribedUsers() {
-		mSubscribedUsers = new ArrayList<SubscribedUser>();
+		mSubscribedUsers = new ArrayList<User>();
 		DBPref pref = new DBPref(getActivity().getApplicationContext());
 		Cursor c = pref.getValues();
 
@@ -86,9 +86,9 @@ public class SubscribedUsersFragment extends Fragment {
 				String currentDriverAllTripsCount = c.getString(c
 						.getColumnIndex("driver_all_trips"));
 
-				mSubscribedUsers.add(new SubscribedUser(currentDriverName,
+				mSubscribedUsers.add(new User(currentDriverName,
 						currentDriverUpcomingTripsCount,
-						currentDriverAllTripsCount));
+						currentDriverAllTripsCount, null));
 			} while (c.moveToNext());
 		}
 		c.close();
@@ -109,13 +109,13 @@ public class SubscribedUsersFragment extends Fragment {
 					Toast.LENGTH_SHORT).show();
 		}
 
-		adapter.notifyDataSetChanged();
+		mAdapter.notifyDataSetChanged();
 	}
 
 	private void loadListItems(){
 		if (mSubscribedUsers != null && mSubscribedUsers.size() > 0) {
 			for (int i = 0; i < mSubscribedUsers.size(); i++){
-				adapter.add(mSubscribedUsers.get(i));
+				mAdapter.add(mSubscribedUsers.get(i));
 			}
 		}
 	}

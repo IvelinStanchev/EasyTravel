@@ -11,22 +11,26 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.easytravel.easytravel.R;
-import com.easytravel.easytravel.models.SubscribedUser;
+import com.easytravel.easytravel.models.User;
 
-public class SubscribedUsersAdapter extends BaseAdapter {
+public class UsersAdapter extends BaseAdapter {
 
-	private ArrayList<SubscribedUser> mSubscribedUsers;
+	private ArrayList<User> mSubscribedUsers;
 	private LayoutInflater mSubscribedInf;
 
-	public SubscribedUsersAdapter(Context c, ArrayList<SubscribedUser> theUsers) {
+	public UsersAdapter(Context c, ArrayList<User> theUsers) {
 		mSubscribedUsers = theUsers;
 		mSubscribedInf = LayoutInflater.from(c);
 	}
 
-	public void add(SubscribedUser subscribedUser)
+	public void add(User subscribedUser)
 	{
 		mSubscribedUsers.add(subscribedUser);
 	    notifyDataSetChanged();
+	}
+	
+	public void clear(){
+		this.mSubscribedUsers.clear();
 	}
 	
 	@Override
@@ -51,7 +55,7 @@ public class SubscribedUsersAdapter extends BaseAdapter {
 		TextView driverName = (TextView) subscribedUsersLay.findViewById(R.id.tv_subscribedUsers_driverName);
 		TextView upcomingTripsCount = (TextView) subscribedUsersLay.findViewById(R.id.tv_subscribedUsers_upcomingTripsCount);
 		TextView allTripsCount = (TextView) subscribedUsersLay.findViewById(R.id.tv_subscribedUsers_allTripsCount);
-		SubscribedUser currentSubscribedUser = mSubscribedUsers.get(position);
+		User currentSubscribedUser = mSubscribedUsers.get(position);
 		
 		driverName.setText("Driver: " + currentSubscribedUser.getDriverName());
 		upcomingTripsCount.setText("Upcoming trips: " + currentSubscribedUser.getUpcomingTripsCount());

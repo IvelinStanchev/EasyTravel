@@ -258,7 +258,6 @@ public class FilterTripsFragment extends Fragment {
 								.replace(R.id.frame_container, fragment)
 								.commit();
 					} else {
-
 						mFromTownString = mFromTown.getSelectedItem()
 								.toString();
 						mToTownString = mToTown.getSelectedItem().toString();

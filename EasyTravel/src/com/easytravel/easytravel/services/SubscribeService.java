@@ -23,7 +23,7 @@ import android.widget.Toast;
 import com.easytravel.easytravel.HomeActivity;
 import com.easytravel.easytravel.InternetConnection;
 import com.easytravel.easytravel.R;
-import com.easytravel.easytravel.models.SubscribedUser;
+import com.easytravel.easytravel.models.User;
 import com.easytravel.easytravel.servicetask.CheckForSubscribedUsersChanges;
 import com.easytravel.easytravel.sqlite.DBPref;
 
@@ -34,10 +34,7 @@ public class SubscribeService extends Service {
 	private String mDriverName;
 	private Handler mHandler = new Handler();
 	private Timer mTimer = null;
-	// private final InternetConnection internetConnection = new
-	// InternetConnection(getApplicationContext());
-	private InternetConnection internetConnection;
-	private String hasInternet;
+	private InternetConnection mInternetConnection;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -46,21 +43,27 @@ public class SubscribeService extends Service {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		internetConnection = new InternetConnection(getApplicationContext());
+		mInternetConnection = new InternetConnection(getApplicationContext());
 		
 		return startId;
 	};
 
 	@Override
 	public void onCreate() {
-		if (mTimer != null) {
-			mTimer.cancel();
-		} else {
-			mTimer = new Timer();
+		mInternetConnection = new InternetConnection(getApplicationContext());
+		
+		if (mInternetConnection.isNetworkAvailable()) {
+			if (mTimer != null) {
+				mTimer.cancel();
+			} else {
+				mTimer = new Timer();
+			}
+			
+			mTimer.scheduleAtFixedRate(new TimeDisplayTimerTask(), 0,
+					NOTIFY_INTERVAL);
 		}
 		
-		mTimer.scheduleAtFixedRate(new TimeDisplayTimerTask(), 0,
-				NOTIFY_INTERVAL);
+		
 	}
 
 	class TimeDisplayTimerTask extends TimerTask {
@@ -75,8 +78,8 @@ public class SubscribeService extends Service {
 
 					new Thread(new Runnable() {
 						public void run() {
-							if (internetConnection.isNetworkAvailable()) {
-								ArrayList<SubscribedUser> subscribedUsers = new ArrayList<SubscribedUser>();
+							if (mInternetConnection.isNetworkAvailable()) {
+								ArrayList<User> subscribedUsers = new ArrayList<User>();
 								DBPref pref = new DBPref(
 										getApplicationContext());
 								Cursor c = pref.getValues();
@@ -91,10 +94,10 @@ public class SubscribeService extends Service {
 												.getColumnIndex("driver_all_trips"));
 
 										subscribedUsers
-												.add(new SubscribedUser(
+												.add(new User(
 														currentDriverName,
 														currentDriverUpcomingTripsCount,
-														currentDriverAllTripsCount));
+														currentDriverAllTripsCount, null));
 									} while (c.moveToNext());
 								}
 								c.close();
@@ -212,10 +215,6 @@ public class SubscribeService extends Service {
 											}
 										}
 									}
-								}
-								else{
-									mTimer = null;
-									mTimer.cancel();
 								}
 							}
 						}

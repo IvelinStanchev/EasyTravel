@@ -6,43 +6,43 @@
 
     <ProgressBar
         android:id="@+id/pb_subscribe"
-        android:layout_gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" />
 
     <TextView
         android:id="@+id/tv_subscribe_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/text_colors"
-        android:textSize="@dimen/phone_textSizes"
         android:gravity="center_horizontal"
-        android:text="" />
+        android:text=""
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/phone_textSizes" />
 
     <TextView
         android:id="@+id/tv_subscribe_upcomingTrips"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textSize="@dimen/phone_textSizes"
         android:gravity="center_horizontal"
-        android:text="" />
+        android:text=""
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/phone_textSizes" />
 
     <TextView
         android:id="@+id/tv_subscribe_totalTrips"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textSize="@dimen/phone_textSizes"
         android:gravity="center_horizontal"
-        android:text="" />
+        android:text=""
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/phone_textSizes" />
 
     <Button
         android:id="@+id/btn_subscribe"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="30sp"
-        android:textColor="#FFFFFF"
-        android:text="Subscribe" />
-    
+        android:text="Subscribe"
+        android:textColor="@color/text_colors"
+        android:textSize="30sp" />
+
 </LinearLayout>

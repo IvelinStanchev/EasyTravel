@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical" >
-
+    
     <ProgressBar
         android:id="@+id/pb_subscribe"
         android:layout_gravity="center"
@@ -42,7 +42,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="@dimen/tablet_subscribe_textSize"
-        android:textColor="@dimen/tablet_subscribe_textSize"
+        android:textColor="@color/text_colors"
         android:text="Subscribe" />
     
 </LinearLayout>

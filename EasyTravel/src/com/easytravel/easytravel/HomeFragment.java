@@ -98,173 +98,133 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 		View rootView = inflater.inflate(R.layout.fragment_home, container,
 				false);
 
-		mInternetConnection = new InternetConnection(getActivity());
-
-		if (!mInternetConnection.isNetworkAvailable()) {
-			Fragment fragment = new NoInternetConnectionFragment(
-					new HomeFragment());
-			FragmentManager fragmentManager = getFragmentManager();
-			fragmentManager.beginTransaction()
-					.replace(R.id.frame_container, fragment).commit();
-		}
-		mLocationManager = (LocationManager) getActivity().getSystemService(
-				Context.LOCATION_SERVICE);
-
-		if (mHasLocation) {
-			getCurrentCoordinates();
-		}
-
 		mSenSensorManager = (SensorManager) getActivity().getSystemService(
 				Context.SENSOR_SERVICE);
 		mSenAccelerometer = mSenSensorManager
 				.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		mSenSensorManager.registerListener(this, mSenAccelerometer,
 				SensorManager.SENSOR_DELAY_NORMAL);
+		
+		mInternetConnection = new InternetConnection(getActivity());
 
-		SharedPreferences preferences = PreferenceManager
-				.getDefaultSharedPreferences(getActivity());
-
-		mAccessToken = preferences.getString("access_token", "");
-
-		mUpcomingTrips = new ArrayList<UpcomingTrip>();
-		mUpcomingTripsForBundle = new ArrayList<UpcomingTrip>();
-
-		mFooterView = ((LayoutInflater) getActivity().getSystemService(
-				Context.LAYOUT_INFLATER_SERVICE)).inflate(
-				R.layout.listview_footer, null, false);
-
-		mListView = (ListView) rootView.findViewById(R.id.upcoming_trips_list);
-
-		mListView.addFooterView(mFooterView);
-
-		if (savedInstanceState != null) {
-			ArrayList<UpcomingTrip> savedItems = savedInstanceState
-					.getParcelableArrayList("array");
-			boolean hasLocationBundle = savedInstanceState
-					.getBoolean("hasLocation");
-
-			mHasLocation = hasLocationBundle;
+		if (!mInternetConnection.isNetworkAvailable()) {
+			Fragment fragment;
+			
+			if (mHasLocation) {
+				fragment =  new NoInternetConnectionFragment(
+						new HomeFragment(true));
+			}
+			else{
+				fragment =  new NoInternetConnectionFragment(
+						new HomeFragment(false));
+			}
+			
+			FragmentManager fragmentManager = getFragmentManager();
+			fragmentManager.beginTransaction()
+					.replace(R.id.frame_container, fragment).commit();
+		} else {
+			mLocationManager = (LocationManager) getActivity()
+					.getSystemService(Context.LOCATION_SERVICE);
 
 			if (mHasLocation) {
 				getCurrentCoordinates();
 			}
 
-			mUpcomingTrips = savedItems;
-			mUpcomingTripsForBundle = savedItems;
-			mPage = mUpcomingTripsForBundle.size() / ITEMS_PER_PAGE;
-		}
 
-		mAdapter = new UpcomingTripsAdapter(getActivity(), mUpcomingTrips);
-		mListView.setAdapter(mAdapter);
 
-		mGestureListener = new SwipeGestureListener(getActivity(), mListView);
-		mListView.setOnTouchListener(mGestureListener);
+			SharedPreferences preferences = PreferenceManager
+					.getDefaultSharedPreferences(getActivity());
 
-		mListView.setOnItemLongClickListener(new OnItemLongClickListener() {
+			mAccessToken = preferences.getString("access_token", "");
 
-			@Override
-			public boolean onItemLongClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				if (!mInternetConnection.isNetworkAvailable()) {
-					Fragment fragment = new NoInternetConnectionFragment(
-							new HomeFragment());
-					FragmentManager fragmentManager = getFragmentManager();
-					fragmentManager.beginTransaction()
-							.replace(R.id.frame_container, fragment).commit();
-				} else {
+			mUpcomingTrips = new ArrayList<UpcomingTrip>();
+			mUpcomingTripsForBundle = new ArrayList<UpcomingTrip>();
 
-					final UpcomingTrip item = mUpcomingTripsForBundle
-							.get(position);
+			mFooterView = ((LayoutInflater) getActivity().getSystemService(
+					Context.LAYOUT_INFLATER_SERVICE)).inflate(
+					R.layout.listview_footer, null, false);
 
-					new AlertDialog.Builder(getActivity())
-							.setTitle("Subscribe to that user ?")
-							.setMessage("Subscribe to that user ?")
-							.setPositiveButton(android.R.string.yes,
-									new DialogInterface.OnClickListener() {
-										public void onClick(
-												DialogInterface dialog,
-												int which) {
+			mListView = (ListView) rootView
+					.findViewById(R.id.upcoming_trips_list);
 
-											Fragment fragment = new SubscribeFragment();
+			mListView.addFooterView(mFooterView);
 
-											Bundle bundle = new Bundle();
-											bundle.putString("driver_id",
-													item.getDriverId());
-											fragment.setArguments(bundle);
+			if (savedInstanceState != null) {
+				ArrayList<UpcomingTrip> savedItems = savedInstanceState
+						.getParcelableArrayList("array");
+				boolean hasLocationBundle = savedInstanceState
+						.getBoolean("hasLocation");
 
-											if (fragment != null) {
-												FragmentManager fragmentManager = getFragmentManager();
-												fragmentManager
-														.beginTransaction()
-														.replace(
-																R.id.frame_container,
-																fragment)
-														.commit();
-											}
+				mHasLocation = hasLocationBundle;
 
-										}
-									})
-							.setNegativeButton(android.R.string.no,
-									new DialogInterface.OnClickListener() {
-										public void onClick(
-												DialogInterface dialog,
-												int which) {
-											// do nothing
-										}
-									})
-							.setIcon(android.R.drawable.ic_dialog_alert).show();
+				if (mHasLocation) {
+					getCurrentCoordinates();
 				}
 
-				return false;
+				mUpcomingTrips = savedItems;
+				mUpcomingTripsForBundle = savedItems;
+				mPage = mUpcomingTripsForBundle.size() / ITEMS_PER_PAGE;
 			}
 
-		});
+			mAdapter = new UpcomingTripsAdapter(getActivity(), mUpcomingTrips);
+			mListView.setAdapter(mAdapter);
 
-		mListView.setOnItemClickListener(new OnItemClickListener() {
+			mGestureListener = new SwipeGestureListener(getActivity(),
+					mListView);
+			mListView.setOnTouchListener(mGestureListener);
 
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				mDoubleClickListener++;
-				Handler handler = new Handler();
-				Runnable r = new Runnable() {
+			mListView.setOnItemLongClickListener(new OnItemLongClickListener() {
 
-					@Override
-					public void run() {
-						mDoubleClickListener = 0;
-					}
-				};
-
-				if (mDoubleClickListener == 1) {
-					// Single click
-					handler.postDelayed(r, POST_DELAYED);
-				} else if (mDoubleClickListener == 2) {
+				@Override
+				public boolean onItemLongClick(AdapterView<?> parent,
+						View view, int position, long id) {
 					if (!mInternetConnection.isNetworkAvailable()) {
-						Fragment fragment = new NoInternetConnectionFragment(
-								new FilterTripsFragment());
+						Fragment fragment;
+						
+						if (mHasLocation) {
+							fragment =  new NoInternetConnectionFragment(
+									new HomeFragment(true));
+						}
+						else{
+							fragment =  new NoInternetConnectionFragment(
+									new HomeFragment(false));
+						}
+						
 						FragmentManager fragmentManager = getFragmentManager();
 						fragmentManager.beginTransaction()
 								.replace(R.id.frame_container, fragment)
 								.commit();
 					} else {
-						// Double click
-						mDoubleClickListener = 0;
-						final UpcomingTrip doubleClickedUpcomingTrip = mUpcomingTripsForBundle
+
+						final UpcomingTrip item = mUpcomingTripsForBundle
 								.get(position);
 
 						new AlertDialog.Builder(getActivity())
-								.setTitle("Join trip")
-								.setMessage("Join to that trip?")
+								.setTitle("Subscribe to that user ?")
+								.setMessage("Subscribe to that user ?")
 								.setPositiveButton(android.R.string.yes,
 										new DialogInterface.OnClickListener() {
 											public void onClick(
 													DialogInterface dialog,
 													int which) {
 
-												new JoinTrip().execute(
-														doubleClickedUpcomingTrip
-																.getId(),
-														mAccessToken);
+												Fragment fragment = new SubscribeFragment();
+
+												Bundle bundle = new Bundle();
+												bundle.putString("driver_id",
+														item.getDriverId());
+												fragment.setArguments(bundle);
+
+												if (fragment != null) {
+													FragmentManager fragmentManager = getFragmentManager();
+													fragmentManager
+															.beginTransaction()
+															.replace(
+																	R.id.frame_container,
+																	fragment)
+															.commit();
+												}
+
 											}
 										})
 								.setNegativeButton(android.R.string.no,
@@ -278,33 +238,102 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 								.setIcon(android.R.drawable.ic_dialog_alert)
 								.show();
 					}
+
+					return false;
 				}
-			}
-		});
 
-		mListView.setOnScrollListener(new OnScrollListener() {
-			@Override
-			public void onScrollStateChanged(AbsListView view, int scrollState) {
-			}
+			});
 
-			@Override
-			public void onScroll(AbsListView view, int firstVisibleItem,
-					int visibleItemCount, int totalItemCount) {
-				int lastInScreen = firstVisibleItem + visibleItemCount;
-				if ((lastInScreen == totalItemCount) && !(mLoadingMore)) {
-					mPage++;
+			mListView.setOnItemClickListener(new OnItemClickListener() {
 
-					if (mHasLocation) {
-						if (mCurrentTown != null) {
-							new GetUpcomingTripsAtMyLocation().execute(mPage);
+				@Override
+				public void onItemClick(AdapterView<?> parent, View view,
+						int position, long id) {
+					mDoubleClickListener++;
+					Handler handler = new Handler();
+					Runnable r = new Runnable() {
+
+						@Override
+						public void run() {
+							mDoubleClickListener = 0;
 						}
+					};
 
-					} else {
-						new GetUpcomingTrips().execute(mPage);
+					if (mDoubleClickListener == 1) {
+						// Single click
+						handler.postDelayed(r, POST_DELAYED);
+					} else if (mDoubleClickListener == 2) {
+						if (!mInternetConnection.isNetworkAvailable()) {
+							Fragment fragment = new NoInternetConnectionFragment(
+									new FilterTripsFragment());
+							FragmentManager fragmentManager = getFragmentManager();
+							fragmentManager.beginTransaction()
+									.replace(R.id.frame_container, fragment)
+									.commit();
+						} else {
+							// Double click
+							mDoubleClickListener = 0;
+							final UpcomingTrip doubleClickedUpcomingTrip = mUpcomingTripsForBundle
+									.get(position);
+
+							new AlertDialog.Builder(getActivity())
+									.setTitle("Join trip")
+									.setMessage("Join to that trip?")
+									.setPositiveButton(
+											android.R.string.yes,
+											new DialogInterface.OnClickListener() {
+												public void onClick(
+														DialogInterface dialog,
+														int which) {
+
+													new JoinTrip().execute(
+															doubleClickedUpcomingTrip
+																	.getId(),
+															mAccessToken);
+												}
+											})
+									.setNegativeButton(
+											android.R.string.no,
+											new DialogInterface.OnClickListener() {
+												public void onClick(
+														DialogInterface dialog,
+														int which) {
+													// do nothing
+												}
+											})
+									.setIcon(android.R.drawable.ic_dialog_alert)
+									.show();
+						}
 					}
 				}
-			}
-		});
+			});
+
+			mListView.setOnScrollListener(new OnScrollListener() {
+				@Override
+				public void onScrollStateChanged(AbsListView view,
+						int scrollState) {
+				}
+
+				@Override
+				public void onScroll(AbsListView view, int firstVisibleItem,
+						int visibleItemCount, int totalItemCount) {
+					int lastInScreen = firstVisibleItem + visibleItemCount;
+					if ((lastInScreen == totalItemCount) && !(mLoadingMore)) {
+						mPage++;
+
+						if (mHasLocation) {
+							if (mCurrentTown != null) {
+								new GetUpcomingTripsAtMyLocation()
+										.execute(mPage);
+							}
+
+						} else {
+							new GetUpcomingTrips().execute(mPage);
+						}
+					}
+				}
+			});
+		}
 
 		return rootView;
 	}
@@ -422,7 +451,7 @@ public class HomeFragment extends Fragment implements SensorEventListener,
 
 	private void loadItemsInAdapter() {
 		if (mUpcomingTrips != null && mUpcomingTrips.size() > 0) {
-			for (int i = 0; i < mUpcomingTrips.size(); i++){
+			for (int i = 0; i < mUpcomingTrips.size(); i++) {
 				mAdapter.add(mUpcomingTrips.get(i));
 			}
 			mLoadingMore = false;

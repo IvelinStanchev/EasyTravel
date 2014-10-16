@@ -48,7 +48,7 @@ public class SubscribeFragment extends Fragment {
 
 	public SubscribeFragment() {
 	}
-
+	
 	@SuppressLint("NewApi")
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
