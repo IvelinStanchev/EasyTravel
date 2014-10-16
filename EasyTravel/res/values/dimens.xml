@@ -3,5 +3,38 @@
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
-
+    <dimen name="login_registerButton_marginBottom">15dp</dimen>
+    
+    <!-- Sizes for phones -->
+    <dimen name="phone_listview_width">240dp</dimen>
+    <dimen name="phone_login_registerButton_textSize">20sp</dimen>
+    <dimen name="phone_login_textSizes">23sp</dimen>
+    <dimen name="phone_login_marginBottom">5dp</dimen>
+    <dimen name="phone_login_texts_padding">5dp</dimen>
+    <dimen name="phone_register_textSizes">23sp</dimen>
+    <dimen name="phone_register_textSizes_padding">5dp</dimen>
+    <dimen name="phone_register_textSizes_marginBottom">5dp</dimen>
+    <dimen name="phone_create_trip_padding_left">10dp</dimen>
+    <dimen name="phone_textSizes">25sp</dimen>
+    <dimen name="phone_no_internet_textSizes">25sp</dimen>
+    <dimen name="phone_no_internet_button_textSize">20sp</dimen>
+    <dimen name="phone_subscribe_textSize">20sp</dimen>
+    <dimen name="phone_upcoming_trips_textSizes">20sp</dimen>
+    
+    <!-- Sizes for tablets -->
+    <dimen name="tablet_listview_width">300dp</dimen>
+    <dimen name="tablet_login_registerButton_textSize">25sp</dimen>
+    <dimen name="tablet_login_textSizes">30sp</dimen>
+    
+    <dimen name="tablet_register_textSizes">25sp</dimen>
+    <dimen name="tablet_register_button_textSize">35sp</dimen>
+    <dimen name="tablet_register_textSizes_padding">5dp</dimen>
+    <dimen name="tablet_register_textSizes_marginBottom">5dp</dimen>
+    <dimen name="tablet_drawer_list_textSizes">18sp</dimen>
+    
+    <dimen name="tablet_subscribe_name_textSize">60sp</dimen>
+    <dimen name="tablet_subscribe_textSize">50sp</dimen>
+    
+    <dimen name="tablet_subscribed_users_textSize">23sp</dimen>
+    <dimen name="tablet_upcoming_trips_textSizes">23sp</dimen>
 </resources>

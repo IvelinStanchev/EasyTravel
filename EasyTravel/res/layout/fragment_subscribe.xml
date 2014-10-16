@@ -14,8 +14,8 @@
         android:id="@+id/tv_subscribe_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textSize="25sp"
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/phone_textSizes"
         android:gravity="center_horizontal"
         android:text="" />
 
@@ -24,7 +24,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="#FFFFFF"
-        android:textSize="25sp"
+        android:textSize="@dimen/phone_textSizes"
         android:gravity="center_horizontal"
         android:text="" />
 
@@ -33,7 +33,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textColor="#FFFFFF"
-        android:textSize="25sp"
+        android:textSize="@dimen/phone_textSizes"
         android:gravity="center_horizontal"
         android:text="" />
 

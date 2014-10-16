@@ -15,7 +15,7 @@
     <!-- Listview to display slider menu -->
     <ListView
         android:id="@+id/list_slidermenu"
-        android:layout_width="240dp"
+        android:layout_width="@dimen/phone_listview_width"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:choiceMode="singleChoice"

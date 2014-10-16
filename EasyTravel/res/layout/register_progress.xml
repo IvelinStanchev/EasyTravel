@@ -19,6 +19,6 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="43dp"
         android:text="Registering"
-        android:textSize="25dp" />
+        android:textSize="@dimen/phone_textSizes" />
 
 </RelativeLayout>

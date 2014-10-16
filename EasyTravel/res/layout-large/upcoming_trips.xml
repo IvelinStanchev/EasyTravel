@@ -9,45 +9,45 @@
         android:id="@+id/tv_upcomingTrip_driverName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#3366FF"
-  		android:textSize="23sp"
+        android:textColor="@color/upcoming_trips"
+  		android:textSize="@dimen/tablet_upcoming_trips_textSizes"
   		android:typeface="monospace"
-        android:text="TextView" />
+        android:text="" />
 
     <TextView
         android:id="@+id/tv_upcomingTrip_from"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#3366FF"
-  		android:textSize="23sp"
+        android:textColor="@color/upcoming_trips"
+  		android:textSize="@dimen/tablet_upcoming_trips_textSizes"
   		android:typeface="monospace"
-        android:text="TextView" />
+        android:text="" />
 
     <TextView
         android:id="@+id/tv_upcomingTrip_to"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#3366FF"
-  		android:textSize="23sp"
+        android:textColor="@color/upcoming_trips"
+  		android:textSize="@dimen/tablet_upcoming_trips_textSizes"
   		android:typeface="monospace"
-        android:text="TextView" />
+        android:text="" />
 
     <TextView
         android:id="@+id/tv_upcomingTrip_departureDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#3366FF"
-  		android:textSize="23sp"
+        android:textColor="@color/upcoming_trips"
+  		android:textSize="@dimen/tablet_upcoming_trips_textSizes"
   		android:typeface="monospace"
-        android:text="TextView" />
+        android:text="" />
 
     <TextView
         android:id="@+id/tv_upcomingTrip_numberOfFreeSeats"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="#3366FF"
-  		android:textSize="23sp"
-        android:text="TextView"
+        android:textColor="@color/upcoming_trips"
+  		android:textSize="@dimen/tablet_upcoming_trips_textSizes"
+        android:text=""
         android:typeface="monospace"
         android:paddingBottom="10dp" />
 

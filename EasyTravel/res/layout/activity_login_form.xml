@@ -14,21 +14,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="right"
-        android:textSize="20dp"
-        android:layout_marginBottom="15dp"
+        android:textSize="@dimen/phone_login_registerButton_textSize"
+        android:layout_marginBottom="@dimen/phone_register_textSizes_marginBottom"
         android:onClick="moveToRegisterActivity"
         android:clickable="true"
-        android:text="Register?" />
+        android:text="@string/tv_login_register" />
 
     <EditText
         android:id="@+id/et_emailLogin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="@dimen/phone_login_marginBottom"
         android:gravity="center"
         android:hint="Email"
-        android:padding="5dp"
-        android:textSize="23dp"
+        android:padding="@dimen/phone_login_texts_padding"
+        android:textSize="@dimen/phone_login_textSizes"
         android:ems="10" >
 
         <requestFocus />
@@ -38,19 +38,19 @@
         android:id="@+id/et_passwordLogin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="@dimen/phone_login_marginBottom"
         android:gravity="center"
         android:hint="Password"
         android:inputType="textPassword"
-        android:padding="5dp"
-        android:textSize="23dp"
+        android:padding="@dimen/phone_login_texts_padding"
+        android:textSize="@dimen/phone_login_textSizes"
         android:ems="10" />
 
     <Button
         android:id="@+id/btn_login"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="23dp"
+        android:textSize="@dimen/phone_login_textSizes"
         android:text="Login" />
     
 </LinearLayout>

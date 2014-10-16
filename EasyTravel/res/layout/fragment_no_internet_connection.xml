@@ -9,9 +9,9 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:textColor="#FFFFFF"
-        android:textSize="25sp"
-        android:text="Try again!" />
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/phone_no_internet_textSizes"
+        android:text="@string/tv_no_internet_button_message" />
 
     <TextView
         android:id="@+id/tv_no_connection"
@@ -19,8 +19,8 @@
         android:layout_height="wrap_content"
         android:layout_above="@+id/btn_try_again"
         android:layout_centerHorizontal="true"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:text="No Internet Connection!" />
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/phone_no_internet_button_textSize"
+        android:text="@string/tv_no_internet_textView_message" />
 
 </RelativeLayout>

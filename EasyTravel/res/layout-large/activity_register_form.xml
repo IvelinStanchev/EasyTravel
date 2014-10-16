@@ -16,8 +16,8 @@
         android:ems="10"
         android:gravity="center"
         android:hint="Enter email"
-        android:padding="5dp"
-        android:textSize="25sp" >
+        android:padding="@dimen/tablet_register_textSizes_marginBottom"
+        android:textSize="@dimen/tablet_register_textSizes" >
 
         <requestFocus />
     </EditText>
@@ -26,13 +26,13 @@
         android:id="@+id/et_password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="@dimen/tablet_register_textSizes_marginBottom"
         android:ems="10"
         android:gravity="center"
         android:hint="Enter password"
         android:inputType="textPassword"
-        android:padding="5dp"
-        android:textSize="25sp" />
+        android:padding="@dimen/tablet_register_textSizes_padding"
+        android:textSize="@dimen/tablet_register_textSizes" />
 
     <EditText
         android:id="@+id/et_confirmPassword"
@@ -43,8 +43,8 @@
         android:gravity="center"
         android:hint="Confirm password"
         android:inputType="textPassword"
-        android:padding="5dp"
-        android:textSize="25sp" />
+        android:padding="@dimen/tablet_register_textSizes_padding"
+        android:textSize="@dimen/tablet_register_textSizes" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -57,7 +57,7 @@
             android:layout_alignParentLeft="true"
             android:layout_centerVertical="true"
             android:text="Are you a driver ?"
-            android:textSize="23dp" />
+            android:textSize="@dimen/tablet_register_textSizes" />
 
         <RadioGroup
             android:layout_width="fill_parent"
@@ -89,7 +89,7 @@
         android:ems="10"
         android:gravity="center"
         android:hint="Enter you car brand, model ...(leave it empty if you are not a driver)"
-        android:padding="5dp"
+        android:padding="@dimen/tablet_register_textSizes_padding"
         android:visibility="invisible" />
 
     <LinearLayout
@@ -102,7 +102,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:text="Register"
-            android:textSize="35dp" />
+            android:textSize="@dimen/tablet_register_button_textSize" />
     </LinearLayout>
 
 </LinearLayout>

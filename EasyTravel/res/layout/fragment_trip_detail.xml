@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textColor="#FFFFFF"
-        android:textSize="25sp" />
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/phone_textSizes" />
 
 </LinearLayout>

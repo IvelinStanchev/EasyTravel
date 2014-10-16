@@ -8,21 +8,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingLeft="10dp" >
+        android:paddingLeft="@dimen/phone_create_trip_padding_left" >
 
         <TextView
             android:id="@+id/tv_create_trip_from"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Starting town: "
-            android:textColor="#FFFFFF"
-            android:textSize="25sp" />
+            android:text="@string/tv_trip_starting_town"
+            android:textColor="@color/text_colors"
+            android:textSize="@dimen/phone_textSizes" />
 
         <Spinner
             android:id="@+id/spinner_create_town_startTown"
             android:layout_width="150dp"
             android:layout_height="34dp"
-            android:background="#FFFFFF"
+            android:background="@color/text_colors"
             android:drawSelectorOnTop="true"
             android:entries="@array/array_names" >
         </Spinner>
@@ -32,21 +32,21 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingLeft="10dp" >
+        android:paddingLeft="@dimen/phone_create_trip_padding_left" >
 
         <TextView
             android:id="@+id/tv_create_trip_to"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Ending town: "
-            android:textColor="#FFFFFF"
-            android:textSize="25sp" />
+            android:text="@string/tv_trip_ending_town"
+            android:textColor="@color/text_colors"
+            android:textSize="@dimen/phone_textSizes" />
 
         <Spinner
             android:id="@+id/spinner_create_town_endTown"
             android:layout_width="150dp"
             android:layout_height="34dp"
-            android:background="#FFFFFF"
+            android:background="@color/text_colors"
             android:drawSelectorOnTop="true"
             android:entries="@array/array_names" >
         </Spinner>
@@ -58,9 +58,9 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:gravity="center"
-        android:hint="Enter the available seats"
-        android:textColor="#FFFFFF"
-        android:textSize="25sp" />
+        android:hint="@string/tv_trip_enter_available_seats"
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/phone_textSizes" />
 
     <EditText
         android:id="@+id/et_get_date"
@@ -68,16 +68,16 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:gravity="center"
-        android:hint="Enter date in the format: \n dd/mm/yyyy hh:mm:ss"
-        android:textColor="#FFFFFF"
-        android:textSize="25sp" />
+        android:hint="@string/tv_trip_enterDate"
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/phone_textSizes" />
 
     <Button
         android:id="@+id/btn_make_trip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/text_colors"
         android:text="Create Trip"
-        android:textSize="25dp" />
+        android:textSize="@dimen/phone_textSizes" />
 
 </LinearLayout>

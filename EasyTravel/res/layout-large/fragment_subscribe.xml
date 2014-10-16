@@ -14,8 +14,8 @@
         android:id="@+id/tv_subscribe_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textSize="60sp"
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/tablet_subscribe_name_textSize"
         android:gravity="center_horizontal"
         android:text="" />
 
@@ -23,8 +23,8 @@
         android:id="@+id/tv_subscribe_upcomingTrips"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textSize="50sp"
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/tablet_subscribe_textSize"
         android:gravity="center_horizontal"
         android:text="" />
 
@@ -32,8 +32,8 @@
         android:id="@+id/tv_subscribe_totalTrips"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="#FFFFFF"
-        android:textSize="50sp"
+        android:textColor="@color/text_colors"
+        android:textSize="@dimen/tablet_subscribe_textSize"
         android:gravity="center_horizontal"
         android:text="" />
 
@@ -41,8 +41,8 @@
         android:id="@+id/btn_subscribe"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="50sp"
-        android:textColor="#FFFFFF"
+        android:textSize="@dimen/tablet_subscribe_textSize"
+        android:textColor="@dimen/tablet_subscribe_textSize"
         android:text="Subscribe" />
     
 </LinearLayout>
