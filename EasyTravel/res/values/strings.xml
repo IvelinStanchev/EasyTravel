@@ -23,6 +23,7 @@
         <item>Filter Trips</item>
         <item>Find People</item>
         <item>Subscribed drivers</item>
+        <item>App statistics</item>
         <item>Logout</item>
     </string-array>
 
@@ -35,6 +36,7 @@
         <item>@drawable/ic_filter</item>
         <item>@drawable/ic_people</item>
         <item>@drawable/ic_user_info</item>
+        <item>@drawable/ic_chart</item>
         <item>@drawable/ic_logout</item>
     </array>
     

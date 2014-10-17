@@ -44,26 +44,25 @@ public class SubscribeService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		mInternetConnection = new InternetConnection(getApplicationContext());
-		
+
 		return startId;
 	};
 
 	@Override
 	public void onCreate() {
 		mInternetConnection = new InternetConnection(getApplicationContext());
-		
+
 		if (mInternetConnection.isNetworkAvailable()) {
 			if (mTimer != null) {
 				mTimer.cancel();
 			} else {
 				mTimer = new Timer();
 			}
-			
+
 			mTimer.scheduleAtFixedRate(new TimeDisplayTimerTask(), 0,
 					NOTIFY_INTERVAL);
 		}
-		
-		
+
 	}
 
 	class TimeDisplayTimerTask extends TimerTask {
@@ -97,7 +96,8 @@ public class SubscribeService extends Service {
 												.add(new User(
 														currentDriverName,
 														currentDriverUpcomingTripsCount,
-														currentDriverAllTripsCount, null));
+														currentDriverAllTripsCount,
+														null));
 									} while (c.moveToNext());
 								}
 								c.close();

@@ -33,6 +33,10 @@
         <activity android:name="com.easytravel.easytravel.progressactivities.LoggingInActivity"></activity>
         <activity android:name="com.easytravel.easytravel.progressactivities.LoggingOutActivity"></activity>
         <activity android:name="com.easytravel.easytravel.progressactivities.RegisteringActivity"></activity>
+        <activity
+            android:name=".EasyTravelStatistics"
+            android:label="EasyTravelStatistics" >
+        </activity>
         
         <service android:name="com.easytravel.easytravel.services.SubscribeService"/>
     </application>

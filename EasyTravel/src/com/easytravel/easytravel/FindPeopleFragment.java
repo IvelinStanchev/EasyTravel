@@ -74,8 +74,8 @@ public class FindPeopleFragment extends Fragment {
 			FragmentManager fragmentManager = getFragmentManager();
 			fragmentManager.beginTransaction()
 					.replace(R.id.frame_container, fragment).commit();
-		} else {
-
+		} 
+		else {
 			mail = (EditText) rootView.findViewById(R.id.et_findPeople_mail);
 			findPeople = (Button) rootView.findViewById(R.id.btn_findPeople);
 

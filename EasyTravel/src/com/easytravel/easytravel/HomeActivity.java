@@ -56,6 +56,7 @@ public class HomeActivity extends Activity {
 	private NavDrawerListAdapter mAdapter;
 	private String mAccessToken;
 	private boolean mHasAccessToken;
+	private InternetConnection mInternetConnection;
 
 	@SuppressLint("NewApi")
 	@Override
@@ -63,6 +64,8 @@ public class HomeActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_home);
 
+		mInternetConnection = new InternetConnection(HomeActivity.this);
+		
 		if (getIntent().getStringExtra("access_token") != null) {
 			mHasAccessToken = true;
 			mAccessToken = getIntent().getStringExtra("access_token");
@@ -101,9 +104,12 @@ public class HomeActivity extends Activity {
 		// Subscribed Drivers
 		mNavDrawerItems.add(new NavDrawerItem(mNavMenuTitles[5], mNavMenuIcons
 				.getResourceId(5, -1)));
-		// Logout
+		// App statistics
 		mNavDrawerItems.add(new NavDrawerItem(mNavMenuTitles[6], mNavMenuIcons
 				.getResourceId(6, -1)));
+		// Logout
+		mNavDrawerItems.add(new NavDrawerItem(mNavMenuTitles[7], mNavMenuIcons
+				.getResourceId(7, -1)));
 
 		mNavMenuIcons.recycle();
 
@@ -230,6 +236,20 @@ public class HomeActivity extends Activity {
 			fragment = new SubscribedUsersFragment();
 			break;
 		case 6:
+			if (mInternetConnection.isNetworkAvailable()) {
+				new GetStatsRequest(HomeActivity.this).execute();
+			}
+			else{
+				Toast.makeText(HomeActivity.this, "No internet connection!", Toast.LENGTH_SHORT).show();
+			}
+			
+			mDrawerList.setItemChecked(position, true);
+			mDrawerList.setSelection(position);
+			setTitle(mNavMenuTitles[position]);
+			mDrawerLayout.closeDrawer(mDrawerList);
+			
+			break;
+		case 7:
 			askForLoggingOut();
 			break;
 		default:
